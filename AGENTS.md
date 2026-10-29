@@ -1,8 +1,8 @@
 # NeuroIn
 
-Este repositório contém somente skills e perfis de agentes. O usuário ainda não
-definiu aplicação, framework, banco de dados ou hospedagem. Não escolha uma stack
-nem crie uma aplicação até receber esse pedido.
+Este repositório contém o protótipo acadêmico NeuroIn em React, TypeScript e
+Vite, além de skills e perfis de agentes. Preserve o escopo de comunicação e
+acolhimento, os dados fictícios e a execução local sem backend.
 
 ## Como trabalhar
 
@@ -32,8 +32,9 @@ Execute da raiz com Python 3.11 ou superior:
 python3 scripts/validate_ai_setup.py
 ```
 
-Essa verificação valida skills, perfis, catálogo e a busca local de UI/UX. Ainda
-não existem comandos de instalação, build ou teste de uma aplicação.
+Essa verificação valida skills, perfis, catálogo e a busca local de UI/UX.
+Para a aplicação: `npm ci`, `npm run dev`, `npm run lint`, `npm run typecheck`,
+`npm run build` e `npm test`. Consulte o README para os fluxos demonstrativos.
 
 ## Codex Cloud
 

@@ -12,8 +12,10 @@
    python3 scripts/validate_ai_setup.py
    ```
 
-   O ambiente precisa de Python 3.11+. Não instale Node ou dependências de uma
-   aplicação: este repositório ainda não possui uma aplicação.
+   O catálogo precisa de Python 3.11+. O protótipo acadêmico NeuroIn usa
+   Node.js 22+ e npm. Para preparar a aplicação execute `npm ci`,
+   `npm run lint`, `npm run typecheck`, `npm run build` e `npm test`.
+   Para iniciar a demonstração: `npm run dev`. Veja o README para os fluxos.
 4. Verifique o resultado, publique o ambiente e inicie uma tarefa com a branch
    que contém esta configuração. Atualizações de arquivos exigem que a tarefa
    esteja usando a revisão correta; a preparação publicada não atualiza tarefas
@@ -46,7 +48,9 @@ das pastas de skills; instalar um plugin no PC não o conecta ao Cloud.
 
 ## Rede e celular
 
-A validação desta base não precisa de internet. A skill Web Design Guidelines
+A validação do catálogo não precisa de internet. A instalação da aplicação
+usa `registry.npmjs.org`; após instalar, fontes e dados são locais e a aplicação
+não exige serviços externos. A skill Web Design Guidelines
 consulta `raw.githubusercontent.com` para buscar as regras atuais: permita esse
 host se for usar essa consulta. Outras tarefas podem precisar de destinos próprios.
 
