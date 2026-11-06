@@ -170,3 +170,12 @@ persistência garantida nas Functions. Para deploy completo ali, precisa de banc
 remoto (Turso é uma opção no Marketplace) e adaptação do driver/fila ao ciclo de
 Functions. Não foi publicado um frontend isolado como se as notificações já
 funcionassem, nem criado um deploy temporário/expirável sem autenticação.
+
+Recurso e interface enviados à main no commit `91383da` em 06/11/2026;
+hash remoto conferido após `git push`. Checkout estava limpo após o envio.
+Lint, typecheck, build, 15 testes backend e 42 Playwright foram reexecutados
+com sucesso antes do commit. Nenhuma chave privada ou banco entrou no Git.
+Ainda não existe deploy Vercel confirmado: a CLI está sem login e a integração
+oferecida continua sem conexão confirmada. Próxima ação necessária do usuário:
+adicionar/autorizar Vercel; depois configurar persistência remota e adaptar a API
+para publicar a funcionalidade completa. Não há status de deploy no commit GitHub.
