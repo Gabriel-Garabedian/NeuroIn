@@ -10,7 +10,7 @@ export default function SupportNetwork() {
   return (
     <div className="support-page">
       <PageHeading
-        title="Minha equipe de apoio"
+        title="Minha rede de apoio"
         description="Pessoas que me conhecem e caminham comigo."
         back="/"
       />
@@ -80,6 +80,10 @@ export default function SupportNetwork() {
           <Link to="/sobre-mim">Ver meu perfil</Link>
         </div>
       </section>
+      <Link className="support-switch-view" to="/ajustes">
+        <HeartHandshake size={21} aria-hidden="true" />
+        <span><strong>Você é responsável ou profissional?</strong><br />Alterne para a visão da rede nos ajustes.</span>
+      </Link>
     </div>
   );
 }

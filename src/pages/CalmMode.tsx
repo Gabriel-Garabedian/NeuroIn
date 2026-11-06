@@ -4,7 +4,9 @@ import { Leaf, ArrowLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { calmActions } from "../data/mockData";
 import { ConfirmationFeedback } from "../components/ConfirmationFeedback";
+import { useCommunication } from "../notifications/CommunicationProvider";
 export default function CalmMode() {
+  const { choose } = useCommunication();
   const { updatePreferences } = useApp();
   const [selected, setSelected] = useState<(typeof calmActions)[number] | null>(
     null,
@@ -25,7 +27,7 @@ export default function CalmMode() {
       ) : (
         <>
           <div className="calm-page-symbol">
-            <Leaf size={38} />
+            <Leaf aria-hidden="true" size={38} />
           </div>
           <header className="page-heading">
             <p>Modo Calmo</p>
@@ -34,7 +36,7 @@ export default function CalmMode() {
           </header>
           <div className="calm-grid">
             {calmActions.map((a) => (
-              <button key={a.label} onClick={() => setSelected(a)}>
+              <button key={a.label} onClick={() => { setSelected(a); choose(a.phrase); }}>
                 <a.icon size={29} />
                 <span>{a.label}</span>
               </button>
@@ -49,7 +51,7 @@ export default function CalmMode() {
           navigate("/");
         }}
       >
-        <ArrowLeft size={18} />
+        <ArrowLeft aria-hidden="true" size={18} />
         Sair do Modo Calmo
       </button>
     </div>

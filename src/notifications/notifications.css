@@ -1,0 +1,21 @@
+.network-panel { margin: 24px 0; padding: 22px 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); overflow-wrap: anywhere; }
+.network-panel h2, .notification-controls h3 { display: flex; align-items: center; gap: 9px; }
+.network-panel p { margin: 12px 0; }
+.network-panel form { display: grid; gap: 12px; margin-top: 20px; }
+.network-panel label { font-weight: 800; }
+.network-panel input { width: 100%; min-height: 48px; padding: 12px; border: 2px solid var(--border); border-radius: 9px; font: inherit; background: var(--surface); color: var(--text); }
+.network-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.network-panel .button { white-space: normal; max-width: 100%; }
+.network-peers, .network-requests { list-style: none; padding: 0; }
+.network-peers li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
+.network-requests li { padding: 18px 0; border-bottom: 1px solid var(--border); }
+.network-requests time, .network-requests .text-link { display: block; margin: 10px 0; }
+.network-requests .request-selected { padding: 18px 12px; background: var(--primary-light); }
+.notification-controls { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }
+.pairing-code { margin-top: 16px; padding: 14px; background: var(--primary-light); border-radius: 10px; }
+.pairing-code > strong { font-size: 1.6rem; letter-spacing: 0.08em; }
+.network-message { min-height: 1.5em; }
+.push-help summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 800; }
+.network-panel :focus-visible, .network-requests .request-selected:focus { outline: 3px solid var(--primary); outline-offset: 3px; }
+.remote-feedback { margin-top: 20px; text-align: left; width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; }
+.remote-feedback .button { margin: 8px 0; }

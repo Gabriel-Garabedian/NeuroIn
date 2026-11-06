@@ -17,7 +17,7 @@ import {
   UtensilsCrossed,
   Palette,
   Moon,
-  BedDouble,
+  DoorOpen,
 } from "lucide-react";
 export const user = {
   name: "Ana",
@@ -118,9 +118,9 @@ export const communicationCategories = [
     name: "Emoções",
     items: [
       ["Estou bem", "Eu estou bem."],
-      ["Estou ansioso", "Eu estou ansiosa."],
+      ["Estou ansiosa", "Eu estou ansiosa."],
       ["Estou triste", "Eu estou triste."],
-      ["Estou irritado", "Eu estou irritada."],
+      ["Estou irritada", "Eu estou irritada."],
       ["Estou com medo", "Eu estou com medo."],
     ],
   },
@@ -139,7 +139,7 @@ export const communicationCategories = [
       ["Não quero conversar", "Não quero conversar agora."],
       ["Não quero contato", "Não quero ser tocada agora."],
       ["Preciso de alguém", "Preciso de alguém comigo."],
-      ["Quero ficar sozinho", "Eu quero ficar sozinha por um momento."],
+      ["Quero ficar sozinha", "Eu quero ficar sozinha por um momento."],
     ],
   },
 ];
@@ -156,8 +156,8 @@ export const sensoryHelp = [
   "Quero silêncio",
   "Quero sair daqui",
   "Quero menos luz",
-  "Não quero ser tocado",
-  "Quero ficar sozinho",
+  "Não quero ser tocada",
+  "Quero ficar sozinha",
   "Quero meu responsável",
   "Preciso de ajuda",
 ];
@@ -293,9 +293,9 @@ export const calmActions = [
     phrase: "Não quero ser tocada agora.",
     icon: Hand,
   },
-  { label: "Quero sair", phrase: "Quero sair daqui.", icon: BedDouble },
+  { label: "Quero sair", phrase: "Quero sair daqui.", icon: DoorOpen },
   {
-    label: "Quero ficar sozinho",
+    label: "Quero ficar sozinha",
     phrase: "Quero ficar sozinha por um momento.",
     icon: Moon,
   },

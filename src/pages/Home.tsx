@@ -1,13 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import {
-  ArrowUpRight,
   ArrowRight,
   Leaf,
   MessageCircle,
   CalendarDays,
   HeartHandshake,
-  Sun,
   ChevronRight,
   Sparkles,
 } from "lucide-react";
@@ -15,7 +13,9 @@ import { quickActions, routine } from "../data/mockData";
 import { useApp } from "../context/AppContext";
 import { ConfirmationFeedback } from "../components/ConfirmationFeedback";
 import { SectionHeader } from "../components/ui";
+import { useCommunication } from "../notifications/CommunicationProvider";
 export default function Home() {
+  const { choose } = useCommunication();
   const { preferences, completed } = useApp();
   const [selected, setSelected] = useState<
     (typeof quickActions)[number] | null
@@ -34,21 +34,10 @@ export default function Home() {
     : quickActions;
   return (
     <>
-      <div className="home-topline">
-        <span>
-          <Sun size={16} /> Um dia de cada vez
-        </span>
-        <span className="demo-label">Seu espaço</span>
-      </div>
       <header className="greeting">
-        <p>
-          Olá, Ana{" "}
-          <span aria-hidden="true" className="wave">
-            ☀
-          </span>
-        </p>
+        <p>Olá, Ana</p>
         <h1 tabIndex={-1}>O que você precisa?</h1>
-        <span>Do seu jeito, no seu tempo.</span>
+        <span>Escolha para mostrar ou falar. No seu tempo.</span>
       </header>
       <section aria-label="Comunicação rápida" className="quick-grid">
         {actions.map((a) => {
@@ -56,10 +45,9 @@ export default function Home() {
           const content = (
             <>
               <span className="quick-icon">
-                <Icon size={31} strokeWidth={1.65} />
+                <Icon aria-hidden="true" size={31} strokeWidth={1.65} />
               </span>
               <span>{a.label}</span>
-              <ArrowUpRight className="quick-arrow" size={16} />
             </>
           );
           return a.path ? (
@@ -74,7 +62,7 @@ export default function Home() {
             <button
               key={a.id}
               className={`quick-card tone-${a.tone}`}
-              onClick={() => setSelected(a)}
+              onClick={() => { setSelected(a); choose(a.phrase); }}
             >
               {content}
             </button>
@@ -82,20 +70,17 @@ export default function Home() {
         })}
       </section>
       <Link to="/comunicacao" className="communication-link">
-        <MessageCircle size={19} />
+        <MessageCircle aria-hidden="true" size={19} />
         <span>Mais formas de me comunicar</span>
-        <ArrowRight size={18} />
+        <ArrowRight aria-hidden="true" size={18} />
       </Link>
-      <Link to="/calmo" className="calm-banner">
+      <Link to="/calmo" className="calm-banner home-calm">
         <span className="calm-symbol">
-          <Leaf size={26} strokeWidth={1.5} />
+          <Leaf aria-hidden="true" size={26} strokeWidth={1.5} />
         </span>
         <span>
-          <strong>Vamos com mais calma?</strong>
-          <span>Menos estímulos. Mais espaço para você.</span>
-        </span>
-        <span className="calm-cta">
-          Modo Calmo <ArrowRight size={17} />
+          <strong>Precisa de menos estímulos?</strong>
+          <span className="calm-cta">Ativar Modo Calmo <ArrowRight aria-hidden="true" size={17} /></span>
         </span>
       </Link>
       <section className="home-routine">
@@ -107,15 +92,15 @@ export default function Home() {
         {next ? (
           <Link className="next-activity" to={`/rotina/${next.id}`}>
             <span className="next-icon">
-              <CalendarDays size={25} />
+              <CalendarDays aria-hidden="true" size={25} />
             </span>
             <span>
               <span className="small muted">
-                Próxima atividade · {next.time}
+                Agora na sua rotina · {next.time}
               </span>
               <strong>{next.title}</strong>
             </span>
-            <ChevronRight size={20} />
+            <ChevronRight aria-hidden="true" size={20} />
           </Link>
         ) : (
           <p className="panel">Tudo certo. Sua rotina está concluída.</p>
@@ -132,14 +117,14 @@ export default function Home() {
         </div>
       </section>
       <div className="home-footer">
-        <HeartHandshake size={18} />
+        <HeartHandshake aria-hidden="true" size={18} />
         <span>Você tem uma rede com quem contar.</span>
         <Link to="/equipe">
-          Conhecer <ArrowRight size={15} />
+          Conhecer <ArrowRight aria-hidden="true" size={15} />
         </Link>
       </div>
       <p className="academic-note">
-        <Sparkles size={13} /> Um protótipo acadêmico feito para acolher.
+        <Sparkles aria-hidden="true" size={13} /> Protótipo acadêmico · Dados fictícios de demonstração.
       </p>
     </>
   );

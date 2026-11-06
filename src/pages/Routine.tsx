@@ -39,7 +39,7 @@ export default function Routine() {
           <span>Hoje, {date}</span>
         </div>
         <div className="routine-progress-label">
-          <strong>Seu dia está acontecendo</strong>
+          <strong>Seu dia, no seu tempo</strong>
           <span aria-live="polite">
             {completedCount} de {routine.length} atividades concluídas
           </span>
@@ -50,6 +50,12 @@ export default function Routine() {
           max={routine.length}
           aria-label="Atividades concluídas"
         />
+        {current && (
+          <div className="routine-current-link">
+            <span><span>Agora</span><strong>{current.title}</strong></span>
+            <Link to={`/rotina/${current.id}`} aria-label="Ver atividade atual"><ChevronRight size={21} aria-hidden="true" /></Link>
+          </div>
+        )}
         <p className="routine-progress-note">
           <Sparkles size={16} aria-hidden="true" />
           {current

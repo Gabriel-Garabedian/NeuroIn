@@ -14,7 +14,7 @@ export function PageHeading({
     <header className="page-heading">
       {back && (
         <Link className="back-link" to={back}>
-          <ArrowLeft size={18} /> Voltar
+          <ArrowLeft aria-hidden="true" size={18} /> Voltar
         </Link>
       )}
       <h1 tabIndex={-1}>{title}</h1>
@@ -37,7 +37,7 @@ export function SectionHeader({
       {to && (
         <Link to={to}>
           {action ?? "Ver tudo"}
-          <ChevronRight size={16} />
+          <ChevronRight aria-hidden="true" size={16} />
         </Link>
       )}
     </div>
@@ -66,7 +66,7 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <Check size={30} />
+      <Check aria-hidden="true" size={30} />
       <h2>{title}</h2>
       {children}
     </div>

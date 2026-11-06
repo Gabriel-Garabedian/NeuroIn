@@ -4,7 +4,9 @@ import { MessageCircle, ChevronRight } from "lucide-react";
 import { communicationCategories } from "../data/mockData";
 import { PageHeading } from "../components/ui";
 import { ConfirmationFeedback } from "../components/ConfirmationFeedback";
+import { useCommunication } from "../notifications/CommunicationProvider";
 export default function Communication() {
+  const { choose } = useCommunication();
   const [category, setCategory] = useState(0);
   const [phrase, setPhrase] = useState("");
   const navigate = useNavigate();
@@ -40,11 +42,11 @@ export default function Communication() {
           <button
             className="option-button"
             key={label}
-            onClick={() => setPhrase(text)}
+            onClick={() => { setPhrase(text); choose(text); }}
           >
-            <MessageCircle size={23} />
+            <MessageCircle aria-hidden="true" size={23} />
             <span>{label}</span>
-            <ChevronRight size={18} />
+            <ChevronRight aria-hidden="true" size={18} />
           </button>
         ))}
       </div>

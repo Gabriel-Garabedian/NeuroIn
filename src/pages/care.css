@@ -1,0 +1,67 @@
+.care-intro {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 0;
+  border-block: 1px solid var(--border);
+  color: var(--primary);
+  margin-bottom: 26px;
+}
+.care-intro p { font-size: 15px; line-height: 1.55; color: var(--muted); }
+.care-intro strong { font-weight: 700; color: var(--text); }
+.care-intro-sensory > svg { color: var(--lavender-ink, var(--primary)); }
+.care-page fieldset { margin: 27px 0; }
+.care-page legend { font-size: 16px; font-weight: 600; }
+.care-wellbeing .region-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.care-wellbeing .selection-button {
+  position: relative;
+  min-height: 82px;
+  padding: 12px;
+  justify-content: flex-start;
+  gap: 9px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+.care-body { stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.care-body-point { fill: var(--primary); stroke: var(--surface); stroke-width: 1.5; }
+.care-selected-check { position: absolute; right: 7px; top: 7px; }
+.care-wellbeing .selection-button[aria-pressed="true"] .care-body { stroke: var(--primary); }
+.care-page .pain-selector { border-top: 1px solid var(--border); padding-top: 22px; }
+.care-page .pain-selector legend { padding-right: 8px; }
+.care-page .pain-levels { gap: 6px; }
+.care-page .pain-level { min-height: 88px; padding: 13px 3px; border-radius: 10px; }
+.care-page .pain-level strong { font-size: 25px; }
+.care-page .pain-level span { font-size: 12px; line-height: 1.35; }
+.care-page .pain-level[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--primary); border-width: 1px; }
+.care-summary { padding: 18px; margin: 16px 0 20px; background: var(--primary-light); border-left: 3px solid var(--primary); border-radius: 0 12px 12px 0; }
+.care-summary h2 { font-size: 14px; color: var(--muted); margin-bottom: 9px; }
+.care-summary > div { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; justify-content: space-between; }
+.care-summary > div > strong { font-size: 22px; }
+.care-summary p { color: var(--muted); font-size: 13px; margin-top: 9px; }
+.care-sensory .sensory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.care-sensory .sensory-option { flex-direction: column; align-items: flex-start; gap: 12px; min-height: 107px; padding: 17px; border-radius: 12px; font-size: 16px; }
+.care-sensory .sensory-option > svg:first-child { color: var(--lavender-ink, var(--primary)); }
+.care-sensory .sensory-option[aria-pressed="true"] { background: var(--lavender, var(--primary-light)); color: var(--text); }
+.care-sensory .sensory-help { margin-top: 30px; }
+.care-chosen { background: var(--primary-light); border-left: 3px solid var(--primary); padding: 14px 16px 4px; border-radius: 0 12px 12px 0; }
+.care-chosen p { display: flex; align-items: flex-start; gap: 8px; font-size: 15px; }
+.care-chosen p svg { margin-top: 3px; color: var(--success); }
+.care-chosen button { min-height: 44px; color: var(--primary); text-decoration: underline; font-size: 14px; font-weight: 700; }
+.care-sensory .sensory-help h2 { font-size: 22px; margin: 22px 0 16px; }
+.care-sensory .option-list { gap: 0; border-block: 1px solid var(--border); }
+.care-sensory .option-button { border: 0; border-radius: 0; min-height: 66px; padding: 15px 6px; background: transparent; }
+.care-sensory .option-button + .option-button { border-top: 1px solid var(--border); }
+.care-sensory .option-button > svg:first-child { color: var(--primary); }
+.care-sensory .option-button:hover { background: var(--primary-light); }
+.care-page .care-calm-link { flex-wrap: nowrap; gap: 12px; }
+.care-page .care-calm-link > span { min-width: 0; flex: 1; }
+.care-page .care-calm-link strong { font-size: 15px; }
+.care-page .disclaimer { font-size: 13px; }
+.high-contrast .care-page .sensory-option { border-color: var(--border); }
+.high-contrast .care-page .sensory-option[aria-pressed="true"] { background: var(--primary-light); color: var(--text); }
+.high-contrast .care-intro-sensory > svg,
+.high-contrast .care-sensory .sensory-option > svg:first-child { color: var(--primary); }
+.large-text .care-page .pain-level span { font-size: 14px; }
+.large-text .care-page .pain-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.large-text .care-page .selection-button,
+.large-text .care-page .sensory-option { font-size: 18px; }

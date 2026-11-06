@@ -13,7 +13,7 @@ import "./support.css";
 
 export default function AboutMe() {
   return (
-    <div className="support-page">
+    <div className="support-page about-page">
       <PageHeading
         title="Sobre mim"
         description="Um pouco sobre mim e sobre como me acolher."
@@ -27,15 +27,15 @@ export default function AboutMe() {
           {user.name.slice(0, 1)}
         </span>
         <div>
-          <h2>{user.fullName}</h2>
-          <p>Cada pessoa tem seu jeito. Este é o meu.</p>
-          <span className="support-demo-label">Perfil de demonstração</span>
+          <p className="profile-name-label">Como gosto de ser chamada</p>
+          <h2 className="profile-preferred-name">{user.name}</h2>
+          <p>{user.fullName}</p>
         </div>
         <Heart className="support-profile-heart" size={36} aria-hidden="true" />
       </section>
 
       <div className="support-profile-grid">
-        <ProfileInfoCard title="Como eu me comunico">
+        <ProfileInfoCard title="Como me comunico">
           <MessageCircle
             className="support-card-icon"
             size={24}
@@ -67,7 +67,7 @@ export default function AboutMe() {
             ))}
           </ul>
         </ProfileInfoCard>
-        <ProfileInfoCard title="Prefiro que evitem">
+        <ProfileInfoCard title="O que prefiro evitar">
           <ShieldCheck
             className="support-card-icon"
             size={24}
@@ -94,7 +94,7 @@ export default function AboutMe() {
       <div className="support-footer-link">
         <Heart size={20} aria-hidden="true" />
         <p>Conheça quem está ao meu lado.</p>
-        <Link to="/equipe">Minha equipe de apoio</Link>
+        <Link to="/equipe">Minha rede de apoio</Link>
       </div>
     </div>
   );

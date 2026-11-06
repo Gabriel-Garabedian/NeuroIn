@@ -16,6 +16,7 @@ import {
   UsersRound,
   Settings as SettingsIcon,
   HeartHandshake,
+  Leaf,
 } from "lucide-react";
 import { Brand, BrandMark } from "./components/Brand";
 import { AppProvider, useApp } from "./context/AppContext";
@@ -30,6 +31,7 @@ import AboutMe from "./pages/AboutMe";
 import SupportNetwork from "./pages/SupportNetwork";
 import SupportView from "./pages/SupportView";
 import Settings from "./pages/Settings";
+import { CommunicationProvider } from "./notifications/CommunicationProvider";
 const nav = [
   { to: "/", label: "Início", icon: House },
   { to: "/rotina", label: "Rotina", icon: CalendarDays },
@@ -58,7 +60,7 @@ function Layout() {
   }, [location.pathname]);
   return (
     <div
-      className={`app-frame ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""}`}
+      className={`app-frame ${preferences.vividColors && !calm ? "vivid-colors" : ""} ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""}`}
     >
       <a className="skip-link" href="#main">
         Ir para o conteúdo
@@ -70,8 +72,6 @@ function Layout() {
         <div className="header-actions">
           <span className="header-tagline">
             Conexão que cuida.
-            <br />
-            Informação que acolhe.
           </span>
           <Link
             to="/equipe"
@@ -93,7 +93,7 @@ function Layout() {
         )}
         <Outlet />
       </main>
-      <nav className="bottom-navigation" aria-label="Navegação principal">
+      {!calm && <nav className="bottom-navigation" aria-label="Navegação principal">
         {nav.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -109,16 +109,27 @@ function Layout() {
             {label}
           </NavLink>
         ))}
-      </nav>
+        <Link to="/calmo" className="side-calm">
+          <Leaf aria-hidden="true" size={22} strokeWidth={1.6} />
+          <span>Modo Calmo<small>Menos estímulos, agora</small></span>
+        </Link>
+      </nav>}
     </div>
   );
 }
 function Splash() {
+  const { preferences } = useApp();
   return (
-    <div className="splash" role="status">
-      <BrandMark size={95} />
+    <div className={`splash ${preferences.vividColors && !preferences.calm ? "vivid-colors" : ""} ${preferences.highContrast ? "high-contrast" : ""}`} role="status">
+      <BrandMark size={112} className="splash-mark" />
       <Brand />
-      <p>Comunicação, autonomia e acolhimento.</p>
+      <p>Conexão que cuida.<br />Informação que acolhe.</p>
+      <svg className="splash-waves" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 120C60 80 120 90 190 120S330 150 400 90V200H0Z" fill="var(--logo-blue, #1f56c4)" />
+        <path d="M0 150C70 110 140 130 210 150S340 170 400 130V200H0Z" fill="var(--logo-yellow, #ffc933)" />
+        <path d="M120 200C180 140 260 120 330 150S390 170 400 160V200Z" fill="var(--logo-coral, #e5484d)" />
+        <path d="M0 175C60 160 130 170 200 185S330 195 400 180V200H0Z" fill="var(--logo-green, #2a9d5c)" />
+      </svg>
     </div>
   );
 }
@@ -139,11 +150,12 @@ export default function App() {
       } catch {
         /* still usable without storage */
       }
-    }, 650);
+    }, 1400);
     return () => clearTimeout(id);
   }, [opening]);
   return (
     <AppProvider>
+      <CommunicationProvider>
       <BrowserRouter>
         {opening ? (
           <Splash />
@@ -178,6 +190,7 @@ export default function App() {
           </Routes>
         )}
       </BrowserRouter>
+      </CommunicationProvider>
     </AppProvider>
   );
 }

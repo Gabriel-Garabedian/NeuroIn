@@ -1,6 +1,7 @@
 export type Preferences = {
   largeText: boolean;
   highContrast: boolean;
+  vividColors: boolean;
   reducedMotion: boolean;
   voice: boolean;
   volume: number;

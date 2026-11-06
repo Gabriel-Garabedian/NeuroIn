@@ -1,47 +1,20 @@
-export function BrandMark({ size = 44 }: { size?: number }) {
+export function BrandMark({ size = 44, className }: { size?: number; className?: string }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 80 80"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M38 12C28 7 18 13 18 22C7 23 7 38 14 41C9 52 19 61 28 57C29 67 36 70 40 65V45C33 49 28 44 29 39C30 34 35 33 40 36V16Z"
-        fill="#0875cf"
-      />
-      <path
-        d="M43 15C50 7 62 13 61 23C73 23 76 36 68 42H49C53 35 49 31 44 32L42 32V15Z"
-        fill="#f8c62d"
-      />
-      <path
-        d="M68 45C75 55 65 64 57 60C55 73 44 74 42 66V48C35 53 30 49 31 44C32 39 37 39 42 42V35C47 32 52 36 48 42H66Z"
-        fill="#f05e5e"
-      />
-      <path
-        d="M39 48V65C33 73 23 66 25 59C14 62 8 53 14 44H26C23 52 32 57 39 48Z"
-        fill="#28ac70"
-      />
-      <path
-        d="M40 3V7M9 15L13 19M3 39H8M9 65L14 62M68 14L65 19M73 63L69 61"
-        stroke="#33aa70"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
+    <svg className={className} width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <path d="M4 18A14 14 0 0 1 18 4H29V29H4Z" fill="var(--logo-blue, #1f56c4)" />
+      <path d="M35 4H46A14 14 0 0 1 60 18V29H35Z" fill="var(--logo-yellow, #ffc933)" />
+      <path d="M4 35H29V60H18A14 14 0 0 1 4 46Z" fill="var(--logo-green, #2a9d5c)" />
+      <path d="M35 35H60V46A14 14 0 0 1 46 60H35Z" fill="var(--logo-coral, #e5484d)" />
+      <circle cx="32" cy="32" r="10" fill="var(--surface, #fff)" />
+      <path d="M32 38.8C26 34.8 24.4 31.4 24.4 29C24.4 26.6 26.2 25.2 28.1 25.2C29.7 25.2 31.2 26.1 32 27.6C32.8 26.1 34.3 25.2 35.9 25.2C37.8 25.2 39.6 26.6 39.6 29C39.6 31.4 38 34.8 32 38.8Z" fill="var(--logo-blue, #1f56c4)" />
     </svg>
   );
 }
 export function Brand() {
   return (
-    <span className="brand">
+    <span className="brand" translate="no">
       <BrandMark />
-      <span>
-        Neuro
-        <span className="brand-in">
-          I<span>n</span>
-        </span>
-      </span>
+      <span>Neuro<span className="brand-in">In</span></span>
     </span>
   );
 }

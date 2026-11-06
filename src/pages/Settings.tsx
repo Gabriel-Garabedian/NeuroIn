@@ -111,6 +111,13 @@ export default function Settings() {
           <Eye size={22} aria-hidden="true" /> Leitura e aparência
         </h2>
         <PreferenceToggle
+          name="vividColors"
+          title="Cores mais vivas"
+          description="Dá mais cor à marca e aos atalhos. Desative para usar tons suaves. O Modo Calmo mantém suas cores tranquilas."
+          checked={preferences.vividColors}
+          onChange={(checked) => toggle("vividColors", checked)}
+        />
+        <PreferenceToggle
           name="largeText"
           title="Texto maior"
           description="Aumenta o tamanho dos textos para facilitar a leitura."
@@ -204,7 +211,7 @@ export default function Settings() {
         />
         <PreferenceToggle
           name="calm"
-          title="Modo calmo"
+          title="Modo Calmo"
           description="Abre um espaço com menos estímulos para fazer uma pausa."
           checked={preferences.calm}
           onChange={(checked) => toggle("calm", checked)}
@@ -260,10 +267,10 @@ export default function Settings() {
         className="info-card settings-reset"
         aria-labelledby="settings-reset-heading"
       >
-        <h2 id="settings-reset-heading">Recomeçar a demonstração</h2>
+        <h2 id="settings-reset-heading">Modo de demonstração</h2>
         <p className="muted">
-          Restaura os ajustes iniciais e apaga o progresso das atividades neste
-          dispositivo.
+          Prepare uma nova apresentação: restaure a rotina e as preferências,
+          desative o Modo Calmo e volte ao início. Apenas os dados do NeuroIn são restaurados.
         </p>
         <button
           type="button"

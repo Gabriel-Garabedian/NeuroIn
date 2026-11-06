@@ -1,8 +1,10 @@
 import { Check, Volume2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { useCommunication } from "../notifications/CommunicationProvider";
+import "../notifications/notifications.css";
 export function ConfirmationFeedback({
   phrase,
   title = "Entendi. Estou aqui com você.",
@@ -15,36 +17,45 @@ export function ConfirmationFeedback({
   onBack: () => void;
 }) {
   const { preferences } = useApp();
+  const communication = useCommunication();
+  const remote = communication.feedback;
   const [feedback, setFeedback] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const supported =
     "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
   const { voice, confirmSpeech, volume } = preferences;
-  useEffect(() => {
-    heading.current?.focus();
-    if (!supported || !voice || confirmSpeech) return;
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.lang = "pt-BR";
-    utterance.volume = volume;
-    utterance.rate = 0.85;
-    window.speechSynthesis.speak(utterance);
-    return () => window.speechSynthesis.cancel();
-  }, [phrase, supported, voice, confirmSpeech, volume]);
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
-  function speak() {
+  const activeSpeech = useRef<SpeechSynthesisUtterance | null>(null);
+  const cancelSpeech = useCallback(() => {
+    if (activeSpeech.current) {
+      activeSpeech.current.onstart = null;
+      activeSpeech.current.onend = null;
+      activeSpeech.current.onerror = null;
+      activeSpeech.current = null;
+    }
+    window.speechSynthesis?.cancel();
+  }, []);
+  const speak = useCallback(() => {
     if (!supported || !voice) return;
-    window.speechSynthesis.cancel();
+    cancelSpeech();
     const utterance = new SpeechSynthesisUtterance(phrase);
+    activeSpeech.current = utterance;
     utterance.lang = "pt-BR";
     utterance.volume = volume;
     utterance.rate = 0.85;
+    utterance.onstart = () => setFeedback("Reproduzindo sua mensagem.");
+    utterance.onend = () => setFeedback("Mensagem reproduzida.");
     utterance.onerror = () =>
       setFeedback(
         "Não foi possível reproduzir a voz. Você pode mostrar esta mensagem.",
       );
+    setFeedback("Preparando sua mensagem.");
     window.speechSynthesis.speak(utterance);
-    setFeedback("Reproduzindo sua mensagem.");
-  }
+  }, [cancelSpeech, phrase, supported, voice, volume]);
+  useEffect(() => {
+    heading.current?.focus();
+    if (!confirmSpeech) speak();
+    return cancelSpeech;
+  }, [cancelSpeech, confirmSpeech, speak]);
   function back() {
     onBack();
     requestAnimationFrame(() =>
@@ -91,7 +102,13 @@ export function ConfirmationFeedback({
           .
         </p>
       ) : null}
-      <p role="status">{feedback}</p>
+      <p role="status" aria-label="Reprodução de voz">{feedback}</p>
+      {remote && <div className="remote-feedback">
+        <p role="status" aria-live="polite" aria-label="Envio à rede">{remote.message}</p>
+        {remote.retry && <button className="button button-secondary" disabled={remote.busy} onClick={() => remote.id ? communication.retry(remote.id) : void communication.retrySelection()}>Tentar envio novamente</button>}
+        {remote.id && !remote.busy && <button className="button button-secondary" onClick={() => void communication.checkRead()}>Consultar leitura</button>}
+        <Link className="text-link" to="/rede">Aparelhos e rede de apoio</Link>
+      </div>}
     </section>
   );
 }

@@ -13,18 +13,20 @@ import { PageHeading, ProfileInfoCard, SectionHeader } from "../components/ui";
 import { useApp } from "../context/AppContext";
 import { demoRecords, routine, user } from "../data/mockData";
 import "./support.css";
+import { NetworkPanel } from "../notifications/NetworkPanel";
 
 export default function SupportView() {
   const { completed, preferences, updatePreferences } = useApp();
   const navigate = useNavigate();
   const completedToday = routine.filter((item) => completed.includes(item.id));
   return (
-    <div className="support-page">
+    <div className="support-page support-view-page">
       <PageHeading
         title="Rede de apoio"
         description={`Um olhar atento para o dia de ${user.name}, com respeito à sua autonomia.`}
         back="/ajustes"
       />
+      <p className="support-view-label"><Heart size={17} aria-hidden="true" /> Visão de responsável ou profissional</p>
       <section
         className="support-profile support-profile-compact"
         aria-label="Resumo do perfil"
@@ -43,6 +45,28 @@ export default function SupportView() {
             <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
+      </section>
+      <NetworkPanel />
+      <section className="support-records" aria-labelledby="records-heading">
+        <div className="support-records-heading">
+          <h2 id="records-heading">Comunicação recente</h2>
+          <span className="support-demo-label">Demonstração</span>
+        </div>
+        <p className="support-demo-note">
+          <Info size={18} aria-hidden="true" /> Dados fictícios para conhecer o
+          protótipo. Os pedidos reais aparecem em uma seção separada acima.
+        </p>
+        <ul>
+          {demoRecords.map((record) => (
+            <li key={`${record.time}-${record.text}`}>
+              <span className="support-record-dot" aria-hidden="true" />
+              <div>
+                <p>{record.text}</p>
+                <small>{record.time}</small>
+              </div>
+            </li>
+          ))}
+        </ul>
       </section>
       <div className="support-view-grid">
         <section className="support-routine-card">
@@ -104,7 +128,7 @@ export default function SupportView() {
             />
             <p>{user.communication}</p>
             <Link className="support-inline-link" to="/equipe">
-              Conhecer a equipe
+              Conhecer a rede de apoio
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </ProfileInfoCard>
@@ -129,27 +153,6 @@ export default function SupportView() {
           </ProfileInfoCard>
         </div>
       </div>
-      <section className="support-records" aria-labelledby="records-heading">
-        <div className="support-records-heading">
-          <h2 id="records-heading">Registros de exemplo</h2>
-          <span className="support-demo-label">Demonstração</span>
-        </div>
-        <p className="support-demo-note">
-          <Info size={18} aria-hidden="true" /> Dados fictícios para conhecer o
-          protótipo. As interações desta sessão não são registradas aqui.
-        </p>
-        <ul>
-          {demoRecords.map((record) => (
-            <li key={`${record.time}-${record.text}`}>
-              <span className="support-record-dot" aria-hidden="true" />
-              <div>
-                <p>{record.text}</p>
-                <small>{record.time}</small>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
       <div className="support-settings-note">
         <SlidersHorizontal size={21} aria-hidden="true" />
         <p>

@@ -8,4 +8,11 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+output/playwright/
 *.tsbuildinfo
+.playwright-cli/
+data/
+dist-server/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

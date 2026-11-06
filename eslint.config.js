@@ -3,8 +3,12 @@ import hooks from "eslint-plugin-react-hooks";
 import refresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 export default tseslint.config(
-  { ignores: ["dist/**", "node_modules/**", ".agents/**", ".codex/**"] },
+  { ignores: ["dist/**", "dist-server/**", "node_modules/**", ".agents/**", ".codex/**", "test-results/**", "playwright-report/**", "output/**", ".playwright-cli/**"] },
   ...tseslint.configs.recommended,
+  {
+    files: ["public/sw.js"],
+    languageOptions: { globals: globals.serviceworker },
+  },
   {
     files: ["src/**/*.{ts,tsx}"],
     languageOptions: { globals: globals.browser },
@@ -18,7 +22,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["*.js", "tests/**/*.ts", "*.config.ts"],
+    files: ["*.js", "server/**/*.ts", "tests/**/*.ts", "*.config.ts"],
     languageOptions: { globals: globals.node },
   },
 );

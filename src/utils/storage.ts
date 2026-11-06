@@ -4,6 +4,7 @@ export const defaultState: DemoState = {
   preferences: {
     largeText: false,
     highContrast: false,
+    vividColors: true,
     reducedMotion: false,
     voice: true,
     volume: 0.7,

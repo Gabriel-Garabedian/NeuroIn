@@ -2,13 +2,20 @@
 
 Comunicação, autonomia e acolhimento.
 
+Identidade colorida com logo de quatro pétalas ao redor de um coração (a rede de apoio
+em volta da pessoa), paleta azul, amarelo, verde e coral, tela de abertura animada e
+layout próprio para computador (menu lateral e grades em colunas); no celular ocupa a
+largura disponível. Estilos de computador em `src/desktop.css`; cores em `src/styles.css`.
+Roteiro de apresentação em [docs/DESIGN.md](docs/DESIGN.md) (a direção visual descrita
+lá é da etapa anterior); continuidade e verificações em [docs/CONTEXTO.md](docs/CONTEXTO.md).
+
 ## Sobre
 
 Protótipo navegável de alta fidelidade, mobile-first, criado para um Projeto Integrador acadêmico de Enfermagem. Ajuda a demonstrar como uma pessoa autista pode expressar necessidades, comunicar desconfortos e compartilhar preferências com sua rede de apoio, respeitando seu ritmo e sua individualidade.
 
 ## Objetivo
 
-Conectar comunicação, acolhimento, autonomia e bem-estar. O aplicativo funciona com dados fictícios de Ana, sem backend, autenticação ou envio de mensagens. Não realiza triagem nem recomenda medicamentos ou tratamentos.
+Conectar comunicação, acolhimento, autonomia e bem-estar. O perfil acadêmico usa dados fictícios de Ana. A comunicação local funciona sem conta; o vínculo entre aparelhos e o envio de pedidos reais usam uma API pequena com SQLite e Web Push. Não realiza triagem nem recomenda medicamentos ou tratamentos.
 
 ## Funcionalidades
 
@@ -19,19 +26,27 @@ Conectar comunicação, acolhimento, autonomia e bem-estar. O aplicativo funcion
 - Rotina com sete atividades, checklist de etapas e progresso persistido.
 - Sobre Mim como guia de acolhimento; equipe com pedidos explicitamente simulados.
 - Visão da rede com perfil, rotina, preferências e registros fictícios (não são um histórico real).
+- Vínculo seguro por código temporário, notificações reais e pedidos persistidos em seção separada da demonstração.
 - Texto maior, alto contraste, movimento reduzido e menos opções; restauração da demonstração com confirmação.
 - Navegação por teclado, foco visível, link para pular ao conteúdo e respeito a `prefers-reduced-motion`.
 
 ## Tecnologias
 
-React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Lucide. CSS com tokens e componentes reutilizáveis. Poppins e Nunito servidas localmente via Fontsource. Playwright e axe-core para validação.
+React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Lucide. CSS com tokens e componentes reutilizáveis. Poppins e Nunito servidas localmente via Fontsource. Node.js 24, Express, SQLite nativo e web-push atendem aos vínculos e notificações. Playwright e axe-core para validação.
 
 ## Executando localmente
 
-Requisitos: Node.js 22+ e npm. Python 3.11+ somente para validar o catálogo de skills/agentes.
+Requisitos: Node.js 24 LTS e npm. Python 3.11+ somente para validar o catálogo de skills/agentes. O SQLite é fornecido pelo Node, sem instalação separada.
 
 ```sh
 npm ci
+cp .env.example .env
+npm run dev:server
+```
+
+Em outro terminal, na mesma pasta:
+
+```sh
 npm run dev
 ```
 
@@ -51,7 +66,7 @@ npx playwright install chromium
 npm test
 ```
 
-No Cloud, o Chromium do sistema em `/usr/bin/chromium` é usado automaticamente; em outros sistemas o Playwright usa seu navegador instalado. Opcional: defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` para outro executável. Os testes iniciam seu próprio Vite na porta 5173 quando necessário.
+No Cloud, o Chromium do sistema em `/usr/bin/chromium` é usado automaticamente; em outros sistemas o Playwright usa seu navegador instalado. Opcional: defina `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` para outro executável. O setup dos testes mantém Vite (5173) e uma API exclusiva (3002) no próprio executor; deixe essas portas livres. Somente o transporte externo de push é simulado; API, cookies, vínculos e consultas são reais.
 
 ```sh
 python3 scripts/validate_ai_setup.py
@@ -70,9 +85,12 @@ python3 scripts/validate_ai_setup.py
 
 ## Demonstração
 
+Para organizar a fala da equipe, os limites e as pendências acadêmicas, consulte
+o [guia de apresentação do PI](docs/APRESENTACAO.md).
+
 1. **Comunicação:** Início → Água → mostrar a frase → Falar (opcional) → voltar.
 2. **Dor:** Início → Dor → Barriga → intensidade → confirmar e mostrar resumo.
-3. **Sensorial:** Início → Barulho → Quero silêncio; voltar → Modo Calmo → escolher uma necessidade → sair do modo.
+3. **Sensorial:** Início → Barulho → Quero silêncio → Modo Calmo → escolher uma necessidade → sair do modo.
 4. **Rotina:** Rotina → detalhes de Almoço → marcar etapas → concluir atividade → conferir progresso.
 5. **Rede:** Sobre Mim → Equipe → Ajustes → Rede de apoio → consultar rotina, sensibilidades e registros de exemplo → voltar à visão pessoal.
 
@@ -80,7 +98,84 @@ Para repetir a apresentação: Ajustes → Restaurar demonstração → Sim, res
 
 ## Persistência e limites
 
-Somente preferências e progresso são guardados no `localStorage`, na chave `neuroin-demo-v1`. A restauração não remove dados de outros aplicativos. Se o armazenamento estiver bloqueado, o aplicativo continua em memória e informa a limitação em Ajustes. Não insira dados pessoais reais. A voz depende do suporte, das vozes e das permissões do navegador/dispositivo; não é necessária para demonstrar os fluxos. Pedidos à equipe não enviam mensagens.
+Preferências e progresso são guardados no `localStorage`, na chave `neuroin-demo-v1`. Tentativas pendentes de envio ficam em `neuroin-pending-requests-v1`, sem reenvio automático ao recarregar. A restauração da demonstração não apaga vínculos, pedidos do servidor ou dados de outros aplicativos. Se o armazenamento estiver bloqueado, mantenha a aba aberta para tentar enviar novamente. A voz continua local e depende do navegador/dispositivo. Os botões de ajuda a profissionais da equipe continuam demonstrativos; as escolhas de comunicação enviam pedidos reais quando este aparelho está vinculado.
+
+## Notificações entre dois celulares
+
+### Configuração do servidor
+
+Copie `.env.example` para `.env` (no PowerShell, `Copy-Item .env.example .env`). Configure:
+
+| Variável | Uso |
+| --- | --- |
+| `PORT` | Porta interna da API, padrão 3001. |
+| `DB_PATH` | Arquivo SQLite, padrão `./data/neuroin.sqlite`. Use caminho absoluto em produção. |
+| `PUBLIC_ORIGIN` | Origem exata do app. Em desenvolvimento: `http://127.0.0.1:5173`; em produção: `https://seu-dominio`, sem barra final. |
+| `VAPID_SUBJECT` | Contato do operador (`mailto:contato@seu-dominio`). |
+| `VAPID_PUBLIC_KEY` | Chave pública gerada para Web Push. |
+| `VAPID_PRIVATE_KEY` | Chave privada, exclusivamente no servidor. |
+
+Gere o par com `npm run vapid:generate` e copie para `.env`. O comando exibe a chave privada: execute em terminal privado, não copie a saída para commits ou relatórios. Não use prefixo `VITE_` em nenhum segredo. `.env`, banco e build do servidor são ignorados pelo Git. Preserve o par VAPID entre reinícios; trocar as chaves exige reativar inscrições nos aparelhos.
+
+Sem chaves, os pedidos continuam consultáveis na rede, mas não há envio de push. O app informa a ausência de configuração ao ativar notificações.
+
+O proxy do Vite encaminha `/api` para `http://127.0.0.1:3001`. `API_PROXY_TARGET` permite mudar o destino para desenvolvimento/teste. `vite preview` serve apenas o build estático; para testar aplicação e API juntas em produção, use o servidor abaixo.
+
+### Vincular e conferir o recebimento
+
+1. Publique frontend e API no mesmo endereço HTTPS, acessível pela internet nos dois celulares.
+2. No celular da mãe, abra **Ajustes → Rede de apoio**, ou `/rede`, e toque em **Vincular dispositivo**. O código é de uso único e expira em 10 minutos; gerar outro invalida o anterior.
+3. No celular de Ana, abra `/rede`, informe o **Código de vinculação** e toque em **Confirmar vínculo**. Confira a indicação de aparelho vinculado. Abra **Ir para a comunicação**.
+4. No celular da mãe, toque em **Ativar notificações** e autorize a solicitação do navegador. A permissão nunca é solicitada só por abrir a página.
+5. Toque em **Enviar notificação de teste**. Confira a notificação do sistema no próprio celular. Uma resposta de sucesso da API significa apenas que o serviço de push aceitou o envio.
+6. No aparelho de Ana, selecione **Água**. A frase continua visível e **Falar** continua reproduzindo somente nesse aparelho. O pedido é salvo e enviado à rede vinculada.
+7. Na mãe, confira a notificação **Novo pedido de Ana / Eu preciso de água.** Toque nela para abrir `/rede?pedido=…` e consultar o pedido real destacado. **Marcar como lido** registra a confirmação; apenas listar os pedidos não confirma leitura.
+8. No aparelho de Ana, **Consultar leitura** mostra somente a evidência registrada pela rede. Use **Tentar envio novamente** quando necessário; a mesma tentativa mantém o identificador, evitando criar outro pedido.
+
+Dor envia apenas depois da confirmação de região/intensidade. Sensibilidades envia apenas a escolha final de ajuda. Abrir telas, atualizar a página, React StrictMode e apertar **Falar** não enviam pedidos. Falhas preservam a mensagem local; tentativas pendentes podem ser consultadas em `/rede`. Sem rede, nenhuma entrega é prometida.
+
+**Android:** navegador atualizado com Push API, Service Worker e Notifications API; permitir notificações no navegador e nas configurações do sistema. A instalação pelo menu do navegador é opcional onde Web Push funciona em abas.
+
+**iPhone/iPad:** iOS/iPadOS 16.4 ou posterior, app adicionado à Tela de Início. No Safari: **Compartilhar → Adicionar à Tela de Início**. Abra pelo ícone instalado, faça o vínculo nesse app e toque em **Ativar notificações**. A identificação do app instalado pode ser diferente da aba do navegador: faça os passos no mesmo contexto. Requisitos documentados pela [Apple/WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/).
+
+Permissão negada exige liberar o site nas configurações. Navegadores incompatíveis e HTTP comum mostram orientações no app. `localhost` é exceção de desenvolvimento ao requisito de contexto seguro; `http://IP-da-rede` no celular não é essa exceção. Entrega, atraso, som e visibilidade dependem da conexão, permissões, economia de bateria, modo Foco e configurações do sistema. Não há fala remota, integração WhatsApp, som garantido ou garantia de entrega instantânea.
+
+**Desativar notificações** remove a inscrição daquele aparelho. **Desvincular** encerra o compartilhamento entre os aparelhos; o servidor não aceita consultas aos pedidos de uma rede desvinculada. Os outros vínculos continuam independentes. Compartilhe o código somente com pessoas autorizadas. O conteúdo pode aparecer na tela bloqueada; a privacidade de prévias é controlada pelo sistema.
+
+### Hospedagem e persistência
+
+```sh
+npm ci
+npm run build
+# Configure .env e NODE_ENV=production no ambiente de hospedagem.
+npm start
+```
+
+O build cria `dist/` (app) e `dist-server/` (API compilada). O servidor serve os dois no mesmo domínio. Use um processo Node 24 LTS permanente, monitorado por um gerenciador de serviços, atrás de proxy reverso com certificado HTTPS no mesmo host. A API escuta em `127.0.0.1:PORT`; proxy e Node precisam compartilhar o acesso a esse endereço. Configure `PUBLIC_ORIGIN` para a origem pública exata; não exponha diretamente a porta interna. O proxy deve encaminhar todas as rotas, inclusive `/api`, ao processo e preencher `X-Forwarded-For` com o IP real do cliente (sobrescrever o valor recebido ou anexar o IP observado, nunca confiar apenas no valor enviado pelo cliente). O servidor confia somente em proxy de loopback para identificar o IP em produção. Ele valida a origem das operações e usa cookie HttpOnly, SameSite e Secure em produção.
+
+Monte um volume persistente no diretório de `DB_PATH`. O banco contém identidades de dispositivos (hash de token), vínculos, inscrições, códigos temporários, pedidos, confirmações e fila de entrega. Arquivos SQLite auxiliares `-wal`/`-shm` fazem parte do funcionamento; para backup consistente use a API de backup SQLite ou pare o processo antes de copiar o conjunto. Proteja banco e backups no host. Uma única instância Node com disco local é suficiente; não use disco efêmero nem compartilhe o arquivo por rede entre réplicas.
+
+Inscrições que retornam 404/410 são invalidadas e precisam ser reativadas. Falhas transitórias mantêm o pedido para consulta e a fila em disco, com até seis tentativas automáticas e esperas progressivas. A tentativa explícita pode recuperar envios que continuam falhos. Retries de transporte podem reapresentar a mesma notificação após uma interrupção em ponto incerto; o identificador/tag permanece o mesmo e nenhum segundo pedido é criado. A API não consegue provar que o sistema exibiu a notificação: só a confirmação explícita de leitura registra esse estado.
+
+Para proteger os códigos, o resgate permite 10 tentativas por aparelho e 30 por IP a cada 10 minutos; a emissão permite 5 por aparelho nesse intervalo. A criação de identidades permite 30 por IP por hora. Esses limites ficam no SQLite e sobrevivem a reinícios. Compartilhar uma conexão pode compartilhar parte desses limites; ao receber o aviso, aguarde o intervalo indicado. Há também limites para pedidos e teste de notificação.
+
+Não há contas ou recuperação de identidade. Apagar os dados do navegador perde a identificação daquele aparelho e exige novo vínculo. Use **Desvincular** antes de abandonar um aparelho. O protótipo não tem painel administrativo de retenção; planeje a guarda e limpeza do banco antes de coletar dados pessoais reais.
+
+GitHub Pages e hospedagem apenas estática não executam esta API. Um Vite aberto no computador também não fornece disponibilidade permanente aos celulares. Ao encerrar o servidor local/Codex, o recebimento remoto depende de um backend publicado e ativo. Esta implementação não cria nem presume esse serviço contratado.
+
+**Vercel:** as Functions não garantem persistência do arquivo SQLite local nem a execução contínua da fila por `setInterval`. Para hospedar tudo na Vercel, é necessário conectar um banco persistente compatível (por exemplo, Turso) e adaptar o acesso ao banco e a execução da fila. Publicar somente o Vite não ativa as notificações entre celulares. Não use um SQLite em `/tmp` como banco de produção. Consulte a [orientação oficial sobre SQLite na Vercel](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel).
+
+### Verificação
+
+```sh
+npm run lint
+npm run typecheck
+npm run build
+npm run test:server
+npm test -- --workers=1
+```
+
+Testes de backend usam SQLite temporário e transporte Web Push injetado. Os de integração iniciam API e frontend juntos por `tests/global-setup.ts`, com contextos de navegador independentes e banco próprio por execução em `output/e2e-<execução>.sqlite`; não representam entrega em aparelho físico. O setup e seu transporte simulado não entram no build de produção. Para comprovar o recebimento real, siga o roteiro acima em dois celulares e observe a notificação do sistema com o site em segundo plano, inclusive após reiniciar o backend.
 
 ## Observação
 

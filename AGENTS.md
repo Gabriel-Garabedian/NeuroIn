@@ -2,7 +2,9 @@
 
 Este repositório contém o protótipo acadêmico NeuroIn em React, TypeScript e
 Vite, além de skills e perfis de agentes. Preserve o escopo de comunicação e
-acolhimento, os dados fictícios e a execução local sem backend.
+acolhimento e os dados fictícios. O backend mínimo em `server/` atende somente
+ao vínculo entre dispositivos, pedidos persistidos e notificações Web Push;
+os demais fluxos continuam locais, sem sistema de contas.
 
 ## Como trabalhar
 
