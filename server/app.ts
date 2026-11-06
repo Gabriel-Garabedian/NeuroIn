@@ -87,9 +87,6 @@ export async function createApp(options: AppOptions) {
   if (!options.databaseUrl && options.databasePath !== ':memory:') mkdirSync(dirname(resolve(options.databasePath!)), { recursive: true });
   const db = options.databaseUrl ? createClient({ url: options.databaseUrl, authToken: options.databaseAuthToken }) : new DatabaseSync(options.databasePath!);
   const schema = `
-    PRAGMA foreign_keys = ON;
-    PRAGMA busy_timeout = 5000;
-    PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS devices (
       id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE,
       role TEXT NOT NULL CHECK(role IN ('support','communicator')), name TEXT NOT NULL
@@ -128,7 +125,10 @@ export async function createApp(options: AppOptions) {
       bucket TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL
     );
   `;
-  try { if (db instanceof DatabaseSync) db.exec(schema); else await db.executeMultiple(schema); }
+  try {
+    if (db instanceof DatabaseSync) db.exec('PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL;' + schema);
+    else await db.executeMultiple(schema);
+  }
   catch (error) { db.close(); throw error; }
   const transactions = new AsyncLocalStorage<Transaction | true>();
   const lockKey = options.databasePath === ':memory:' ? randomUUID() : resolve(options.databasePath ?? '.');
