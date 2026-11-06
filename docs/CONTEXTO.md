@@ -179,3 +179,21 @@ Ainda não existe deploy Vercel confirmado: a CLI está sem login e a integraç�
 oferecida continua sem conexão confirmada. Próxima ação necessária do usuário:
 adicionar/autorizar Vercel; depois configurar persistência remota e adaptar a API
 para publicar a funcionalidade completa. Não há status de deploy no commit GitHub.
+
+### Vercel instalada; ferramentas ainda ausentes nesta conversa
+
+Após o usuário responder "conectei", a consulta ao catálogo confirmou
+`installed: true` para Vercel. Não pedir outra instalação/conexão com base no
+estado anterior. Contudo, a lista efetiva de ferramentas desta conversa não
+contém Vercel (nem por nome nem por descrição/capacidades de deploy), e o host
+não recebeu arquivo de autenticação CLI ou variáveis Vercel/Turso. Não foi
+possível consultar a conta, criar banco ou publicar usando esta conversa.
+
+Próxima tentativa: abrir uma nova conversa no projeto NeuroIn para carregar a
+integração recém-instalada; mencionar Vercel no pedido. Ler este registro e
+continuar o deploy já autorizado, usando o checkout atual. O código e os testes
+estão nos commits anteriores; não refazer a implementação nem pedir ao usuário
+que repita os requisitos. Primeiro verificar ferramentas e conta disponíveis;
+depois resolver persistência remota e ciclo da fila antes de declarar o app
+com notificações publicado. Instalação confirmada não comprova deploy nem
+recebimento físico. Nenhum recurso pago foi criado ou autorizado nesta etapa.
