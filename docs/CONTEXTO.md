@@ -197,3 +197,42 @@ que repita os requisitos. Primeiro verificar ferramentas e conta disponíveis;
 depois resolver persistência remota e ciclo da fila antes de declarar o app
 com notificações publicado. Instalação confirmada não comprova deploy nem
 recebimento físico. Nenhum recurso pago foi criado ou autorizado nesta etapa.
+
+### Adaptação para Vercel — 06/11/2026
+
+A integração Vercel está funcional nesta sessão. A equipe autorizada é Voryn
+(`team_0fDPokRDzboxsb3U1uN3tjgv`); Voryn é o workspace da conta. O aplicativo
+Voryn existente não foi alterado. Criado projeto separado `neuroin`,
+`prj_g5HARp9oQLHzDnNgEmMu1ADTVNJX`, Node 24.x, domínio reservado
+`neuroin-psi.vercel.app`, acesso público e OIDC habilitado. O usuário conectou
+Turso pelo Marketplace, plano Starter gratuito ($0/mês), e as variáveis
+TURSO_DATABASE_URL/TURSO_AUTH_TOKEN chegaram ao projeto. VAPID e PUBLIC_ORIGIN
+foram configurados exclusivamente no ambiente do projeto, sem segredos no Git.
+
+- `createApp` agora assíncrono. Mantém SQLite nativo local e usa libSQL HTTP
+  para Turso remoto. Callers, fixtures e setup Playwright ajustados. Transações
+  remotas usam a mesma conexão via AsyncLocalStorage; operações/transações locais
+  são serializadas por arquivo. Exclusão de vínculo apaga entregas explicitamente.
+- `serverless/`, `api/`, `vercel.json`: sem SQLite temporário nem intervalos na
+  Vercel. Job Queues publicado depois do commit e antes do envio inicial; consumidor
+  reconsulta banco/vínculos, respeita backoff/lease e seis tentativas. Mensagem
+  dura dez minutos. Claim compara attempts para proteger snapshots concorrentes.
+  Reativar inscrição pode publicar novo job; dedupe de transporte está no banco,
+  não em chave do broker que impediria a recuperação dentro do TTL.
+- Revisão separada encontrou e corrigiu dedupe indevido da republicação e
+  agendamento tardio. README e .env.example incluem deploy, banco e fila.
+- `npm ci` final passou. Durante diagnóstico houve falha Windows EPERM ao
+  remover DLL aberta por testes antigos; encerrados somente os processos de
+  teste identificados desta tarefa e instalação refeita. Driver local libSQL
+  retinha arquivo no Windows após close em reprodução isolada; mantido driver
+  nativo local para preservar funcionamento e migração sem perda.
+- Lint/typecheck/build passaram. Backend ampliado de 15 para 23 testes;
+  Playwright 42/42 passou (3,8 min), API/frontend juntos com transporte externo
+  simulado. `py -3 scripts/validate_ai_setup.py` passou (25 skills/283 perfis).
+- npm audit reporta dependências transitivas do SDK Queues (minimatch e caminho
+  CLI/OIDC/zod), além de dev dependencies. Nenhum downgrade forçado ou upgrade
+  incompatível aplicado. Não há glob ou coleção Zod fornecida pelo usuário nas
+  rotas do aplicativo; atualizar SDK quando correções compatíveis estiverem disponíveis.
+
+Neste ponto o deploy e o smoke HTTPS/Turso ainda estão pendentes; conferir
+o registro posterior antes de declarar publicação ou entrega real em celular.

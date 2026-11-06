@@ -13,6 +13,7 @@ output/playwright/
 .playwright-cli/
 data/
 dist-server/
+.vercel/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm

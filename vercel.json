@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/[...path].ts": { "maxDuration": 60 },
+    "api/push-queue.ts": {
+      "maxDuration": 60,
+      "experimentalTriggers": [
+        { "type": "queue/v2beta", "topic": "neuroin-push", "maxDeliveries": 12, "retryAfterSeconds": 10 }
+      ]
+    }
+  },
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+  ],
+  "rewrites": [
+    { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
+  ]
+}

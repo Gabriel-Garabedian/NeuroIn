@@ -1,18 +1,26 @@
 import { createHash, randomBytes, randomUUID, ECDH } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
+import { DatabaseSync } from 'node:sqlite';
+import { createClient, type Transaction } from '@libsql/client/http';
 import express, { type ErrorRequestHandler, type Request, type Response } from 'express';
 import * as webPush from 'web-push';
 
 type Role = 'support' | 'communicator';
+type SQLInputValue = string | number | null;
 type Device = { id: string; role: Role; name: string };
 type Subscription = { endpoint: string; keys: { p256dh: string; auth: string } };
 type Vapid = { publicKey: string; privateKey: string; subject: string };
 type StoredRequest = { id: string; sender_id: string; phrase: string; created_at: number; read_at: number | null; sender_name: string };
 type Delivery = StoredRequest & { recipient_id: string; attempts: number };
 export type AppOptions = {
-  databasePath: string;
+  databasePath?: string;
+  databaseUrl?: string;
+  databaseAuthToken?: string;
+  backgroundProcessing?: boolean;
+  onPendingRequest?: (requestId: string) => Promise<void>;
+  trustedProxy?: 'loopback' | 1;
   production?: boolean;
   publicOrigin?: string;
   vapid?: Vapid;
@@ -26,6 +34,8 @@ class HttpError extends Error {
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 const iso = (value: number) => new Date(value).toISOString();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// As transações locais precisam aguardar umas às outras enquanto o driver remoto usa seu próprio lock.
+const localLocks = new Map<string, Promise<unknown>>();
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new HttpError(400, 'Dados inválidos.');
   return value as Record<string, unknown>;
@@ -57,7 +67,7 @@ function validateSubscription(body: unknown): Subscription {
   return { endpoint: url.href, keys: { p256dh, auth } };
 }
 
-export function createApp(options: AppOptions) {
+export async function createApp(options: AppOptions) {
   const now = options.now ?? Date.now;
   const production = options.production ?? false;
   if (production && !options.publicOrigin) throw new Error('PUBLIC_ORIGIN é obrigatório em produção.');
@@ -73,9 +83,10 @@ export function createApp(options: AppOptions) {
     // Valida sem configurar estado global compartilhado entre instâncias.
     webPush.getVapidHeaders('https://fcm.googleapis.com', options.vapid.subject, options.vapid.publicKey, options.vapid.privateKey, 'aes128gcm');
   }
-  if (options.databasePath !== ':memory:') mkdirSync(dirname(resolve(options.databasePath)), { recursive: true });
-  const db = new DatabaseSync(options.databasePath);
-  db.exec(`
+  if (!options.databaseUrl && !options.databasePath) throw new Error('Configure um banco persistente.');
+  if (!options.databaseUrl && options.databasePath !== ':memory:') mkdirSync(dirname(resolve(options.databasePath!)), { recursive: true });
+  const db = options.databaseUrl ? createClient({ url: options.databaseUrl, authToken: options.databaseAuthToken }) : new DatabaseSync(options.databasePath!);
+  const schema = `
     PRAGMA foreign_keys = ON;
     PRAGMA busy_timeout = 5000;
     PRAGMA journal_mode = WAL;
@@ -116,18 +127,43 @@ export function createApp(options: AppOptions) {
     CREATE TABLE IF NOT EXISTS rate_limits (
       bucket TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL
     );
-  `);
-  function get<T>(sql: string, ...args: SQLInputValue[]) { return db.prepare(sql).get(...args) as T | undefined; }
-  function all<T>(sql: string, ...args: SQLInputValue[]) { return db.prepare(sql).all(...args) as T[]; }
-  function run(sql: string, ...args: SQLInputValue[]) { return db.prepare(sql).run(...args); }
-  function transaction<T>(action: () => T): T {
-    db.exec('BEGIN IMMEDIATE');
-    try { const result = action(); db.exec('COMMIT'); return result; }
-    catch (error) { db.exec('ROLLBACK'); throw error; }
+  `;
+  try { if (db instanceof DatabaseSync) db.exec(schema); else await db.executeMultiple(schema); }
+  catch (error) { db.close(); throw error; }
+  const transactions = new AsyncLocalStorage<Transaction | true>();
+  const lockKey = options.databasePath === ':memory:' ? randomUUID() : resolve(options.databasePath ?? '.');
+  async function localOperation<T>(action: () => T | Promise<T>): Promise<T> {
+    if (transactions.getStore() === true) return action();
+    const pending = (localLocks.get(lockKey) ?? Promise.resolve()).then(action);
+    const settled = pending.catch(() => undefined);
+    localLocks.set(lockKey, settled);
+    try { return await pending; } finally { if (localLocks.get(lockKey) === settled) localLocks.delete(lockKey); }
   }
-  function limit(key: string, max: number, milliseconds: number) {
+  async function all<T>(sql: string, ...args: SQLInputValue[]): Promise<T[]> {
+    if (db instanceof DatabaseSync) return localOperation(() => db.prepare(sql).all(...args) as T[]);
+    const tx = transactions.getStore();
+    return (await (tx && tx !== true ? tx : db).execute({ sql, args })).rows as unknown as T[];
+  }
+  async function get<T>(sql: string, ...args: SQLInputValue[]) { return (await all<T>(sql, ...args))[0]; }
+  async function run(sql: string, ...args: SQLInputValue[]) {
+    if (db instanceof DatabaseSync) return localOperation(() => ({ rowsAffected: Number(db.prepare(sql).run(...args).changes) }));
+    const tx = transactions.getStore();
+    return (tx && tx !== true ? tx : db).execute({ sql, args });
+  }
+  async function transaction<T>(action: () => Promise<T>): Promise<T> {
+    if (db instanceof DatabaseSync) return localOperation(async () => {
+      db.exec('BEGIN IMMEDIATE');
+      try { const result = await transactions.run(true, action); db.exec('COMMIT'); return result; }
+      catch (error) { db.exec('ROLLBACK'); throw error; }
+    });
+    const tx = await db.transaction('write');
+    try { const result = await transactions.run(tx, action); await tx.commit(); return result; }
+    catch (error) { await tx.rollback(); throw error; }
+    finally { tx.close(); }
+  }
+  async function limit(key: string, max: number, milliseconds: number) {
     const time = now();
-    const row = get<{ count: number; reset_at: number }>(`
+    const row = await get<{ count: number; reset_at: number }>(`
       INSERT INTO rate_limits(bucket,count,reset_at) VALUES(?,1,?)
       ON CONFLICT(bucket) DO UPDATE SET
         count=CASE WHEN reset_at<=? THEN 1 ELSE count+1 END,
@@ -135,27 +171,27 @@ export function createApp(options: AppOptions) {
       RETURNING count,reset_at`, key, time + milliseconds, time, time);
     if (row && row.count > max) throw new HttpError(429, 'Muitas tentativas. Aguarde alguns minutos.');
   }
-  function authenticate(req: Request): Device | null {
+  async function authenticate(req: Request): Promise<Device | null> {
     const cookie = /(?:^|;\s*)neuroin_device=([\w-]{43})(?:;|$)/.exec(req.headers.cookie ?? '');
-    return cookie ? get<Device>('SELECT id,role,name FROM devices WHERE token_hash=?', hash(cookie[1])) ?? null : null;
+    return cookie ? await get<Device>('SELECT id,role,name FROM devices WHERE token_hash=?', hash(cookie[1])) ?? null : null;
   }
   const clientIp = (req: Request) => hash(req.ip ?? req.socket.remoteAddress ?? 'unknown');
-  function requireDevice(req: Request, role?: Role) {
-    const device = authenticate(req);
+  async function requireDevice(req: Request, role?: Role) {
+    const device = await authenticate(req);
     if (!device) throw new HttpError(401, 'Configure este dispositivo primeiro.');
     if (role && device.role !== role) throw new HttpError(403, 'Este dispositivo não pode realizar essa ação.');
     return device;
   }
-  function peers(device: Device) {
-    return all<{ id: string; name: string }>(`SELECT d.id,d.name FROM links l JOIN devices d
+  async function peers(device: Device) {
+    return await all<{ id: string; name: string }>(`SELECT d.id,d.name FROM links l JOIN devices d
       ON d.id=CASE WHEN l.support_id=? THEN l.communicator_id ELSE l.support_id END
       WHERE l.support_id=? OR l.communicator_id=? ORDER BY d.name`, device.id, device.id, device.id);
   }
-  function session(device: Device | null) {
-    return { device, peers: device ? peers(device) : [], subscribed: !!device && !!get('SELECT 1 FROM subscriptions WHERE device_id=?', device.id), publicKey: options.vapid?.publicKey ?? null };
+  async function session(device: Device | null) {
+    return { device, peers: device ? await peers(device) : [], subscribed: !!device && !!await get('SELECT 1 FROM subscriptions WHERE device_id=?', device.id), publicKey: options.vapid?.publicKey ?? null };
   }
-  function storedSubscription(deviceId: string): Subscription | undefined {
-    const sub = get<{ endpoint: string; p256dh: string; auth: string }>('SELECT endpoint,p256dh,auth FROM subscriptions WHERE device_id=?', deviceId);
+  async function storedSubscription(deviceId: string): Promise<Subscription | undefined> {
+    const sub = await get<{ endpoint: string; p256dh: string; auth: string }>('SELECT endpoint,p256dh,auth FROM subscriptions WHERE device_id=?', deviceId);
     return sub ? { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } } : undefined;
   }
   const sendPush = options.sendPush ?? (async (subscription: Subscription, payload: string) => {
@@ -177,19 +213,19 @@ export function createApp(options: AppOptions) {
   let queueRunning: Promise<void> | undefined;
   async function deliver(delivery: Delivery) {
     const time = now();
-    const claimed = run(`UPDATE deliveries SET status='sending', attempts=attempts+1, lease_until=?
-      WHERE request_id=? AND recipient_id=? AND (status IN ('queued','failed') OR (status='sending' AND lease_until<=?))`,
-    time + 30_000, delivery.id, delivery.recipient_id, time);
-    if (!claimed.changes) return;
-    const sub = storedSubscription(delivery.recipient_id);
+    const claimed = await run(`UPDATE deliveries SET status='sending', attempts=attempts+1, lease_until=?
+      WHERE request_id=? AND recipient_id=? AND attempts=? AND (status IN ('queued','failed') OR (status='sending' AND lease_until<=?))`,
+    time + 30_000, delivery.id, delivery.recipient_id, delivery.attempts, time);
+    if (!claimed.rowsAffected) return;
+    const sub = await storedSubscription(delivery.recipient_id);
     try {
       if (!sub) throw new Error('Nenhum dispositivo de apoio com notificações ativas.');
       await send(sub, JSON.stringify({ title: `Novo pedido de ${delivery.sender_name}`, body: delivery.phrase, url: `/rede?pedido=${delivery.id}`, requestId: delivery.id }));
-      run("UPDATE deliveries SET status='sent',next_attempt_at=NULL,lease_until=NULL WHERE request_id=? AND recipient_id=?", delivery.id, delivery.recipient_id);
+      await run("UPDATE deliveries SET status='sent',next_attempt_at=NULL,lease_until=NULL WHERE request_id=? AND recipient_id=?", delivery.id, delivery.recipient_id);
     } catch (error) {
-      if (sub && expiredSubscription(error)) run('DELETE FROM subscriptions WHERE device_id=? AND endpoint=?', delivery.recipient_id, sub.endpoint);
+      if (sub && expiredSubscription(error)) await run('DELETE FROM subscriptions WHERE device_id=? AND endpoint=?', delivery.recipient_id, sub.endpoint);
       const attempts = delivery.attempts + 1;
-      run("UPDATE deliveries SET status='failed',next_attempt_at=?,lease_until=NULL WHERE request_id=? AND recipient_id=?",
+      await run("UPDATE deliveries SET status='failed',next_attempt_at=?,lease_until=NULL WHERE request_id=? AND recipient_id=?",
         attempts >= 6 ? null : now() + Math.min(300_000, 5000 * 2 ** (attempts - 1)), delivery.id, delivery.recipient_id);
     }
   }
@@ -197,7 +233,7 @@ export function createApp(options: AppOptions) {
     while (queueRunning) await queueRunning;
     if (closed) return;
     const time = now();
-    const rows = all<Delivery>(`SELECT r.*,d.name AS sender_name,q.recipient_id,q.attempts FROM deliveries q
+    const rows = await all<Delivery>(`SELECT r.*,d.name AS sender_name,q.recipient_id,q.attempts FROM deliveries q
       JOIN requests r ON r.id=q.request_id JOIN devices d ON d.id=r.sender_id
       JOIN links l ON l.support_id=q.recipient_id AND l.communicator_id=r.sender_id
       WHERE ${requestId ? 'q.request_id=? AND ' : ''}
@@ -207,14 +243,26 @@ export function createApp(options: AppOptions) {
     queueRunning = Promise.all(rows.map(deliver)).then(() => undefined);
     try { await queueRunning; } finally { queueRunning = undefined; }
   }
-  function pushStatus(requestId: string) {
-    const rows = all<{ status: string; count: number }>('SELECT status,COUNT(*) AS count FROM deliveries WHERE request_id=? GROUP BY status', requestId);
+  async function pushStatus(requestId: string) {
+    const rows = await all<{ status: string; count: number }>('SELECT status,COUNT(*) AS count FROM deliveries WHERE request_id=? GROUP BY status', requestId);
     return { accepted: rows.find((r) => r.status === 'sent')?.count ?? 0, failed: rows.find((r) => r.status === 'failed')?.count ?? 0,
       pending: rows.filter((r) => r.status === 'queued' || r.status === 'sending').reduce((sum, r) => sum + r.count, 0) };
   }
+  async function hasPendingDelivery(requestId: string) {
+    return !!await get(`SELECT 1 FROM deliveries q JOIN requests r ON r.id=q.request_id
+      JOIN links l ON l.support_id=q.recipient_id AND l.communicator_id=r.sender_id
+      WHERE q.request_id=? AND (q.status IN ('queued','sending') OR
+        (q.status='failed' AND q.next_attempt_at IS NOT NULL AND q.attempts<6)) LIMIT 1`, requestId);
+  }
+  async function schedulePending(requestId: string) {
+    if (options.onPendingRequest && await hasPendingDelivery(requestId)) {
+      try { await options.onPendingRequest(requestId); }
+      catch { console.error('Não foi possível agendar nova tentativa de notificação.'); }
+    }
+  }
   const requestSelect = 'SELECT r.*,d.name AS sender_name FROM requests r JOIN devices d ON d.id=r.sender_id';
-  function authorizedRequest(id: string, device: Device) {
-    const request = get<StoredRequest>(`${requestSelect} WHERE r.id=? AND (r.sender_id=? OR EXISTS(
+  async function authorizedRequest(id: string, device: Device) {
+    const request = await get<StoredRequest>(`${requestSelect} WHERE r.id=? AND (r.sender_id=? OR EXISTS(
       SELECT 1 FROM recipients p JOIN links l ON l.support_id=p.device_id AND l.communicator_id=r.sender_id
       WHERE p.request_id=r.id AND p.device_id=?))`, id, device.id, device.id);
     if (!request) throw new HttpError(404, 'Pedido não encontrado nesta rede.');
@@ -225,7 +273,7 @@ export function createApp(options: AppOptions) {
   }
   const app = express();
   app.disable('x-powered-by');
-  if (production) app.set('trust proxy', 'loopback');
+  if (production) app.set('trust proxy', options.trustedProxy ?? 'loopback');
   app.use('/api', (req, res, next) => {
     res.set({ 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !origins.has(req.headers.origin ?? '')) {
@@ -234,106 +282,109 @@ export function createApp(options: AppOptions) {
     next();
   });
   app.use('/api', express.json({ limit: '8kb', strict: true }));
-  app.use('/api', (req, _res, next) => {
+  app.use('/api', async (req, _res, next) => {
     try {
       if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-        limit(`mutation-ip:${clientIp(req)}`, 180, 60_000);
-        const device = authenticate(req);
-        if (device) limit(`mutation-device:${device.id}`, 120, 60_000);
+        await limit(`mutation-ip:${clientIp(req)}`, 180, 60_000);
+        const device = await authenticate(req);
+        if (device) await limit(`mutation-device:${device.id}`, 120, 60_000);
       }
       next();
     } catch (error) { next(error); }
   });
-  app.get('/api/session', (req, res) => { res.json(session(authenticate(req))); });
-  app.post('/api/devices', (req, res) => {
+  app.get('/api/session', async (req, res) => { res.json(await session(await authenticate(req))); });
+  app.post('/api/devices', async (req, res) => {
     const body = object(req.body);
     if (body.role !== 'support' && body.role !== 'communicator') throw new HttpError(400, 'Tipo de dispositivo inválido.');
     const name = body.name === undefined ? (body.role === 'support' ? 'Responsável' : 'Ana') : text(body.name, 80, 'Nome');
-    let device = authenticate(req);
+    let device = await authenticate(req);
     if (device && device.role !== body.role) throw new HttpError(409, 'Este dispositivo já possui outro papel. Use outro navegador ou perfil.');
     if (!device) {
-      limit(`create:${clientIp(req)}`, 30, 3_600_000);
+      await limit(`create:${clientIp(req)}`, 30, 3_600_000);
       const token = randomBytes(32).toString('base64url');
       device = { id: randomUUID(), role: body.role, name };
-      run('INSERT INTO devices(id,token_hash,role,name) VALUES(?,?,?,?)', device.id, hash(token), device.role, name);
+      await run('INSERT INTO devices(id,token_hash,role,name) VALUES(?,?,?,?)', device.id, hash(token), device.role, name);
       res.setHeader('Set-Cookie', `neuroin_device=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${production ? '; Secure' : ''}`);
     }
-    res.json(session(device));
+    res.json(await session(device));
   });
-  app.post('/api/pairings', (req, res) => {
-    const device = requireDevice(req, 'support');
-    limit(`pair-issue:${device.id}`, 5, 600_000);
-    limit(`pair-issue-ip:${clientIp(req)}`, 30, 600_000);
+  app.post('/api/pairings', async (req, res) => {
+    const device = await requireDevice(req, 'support');
+    await limit(`pair-issue:${device.id}`, 5, 600_000);
+    await limit(`pair-issue-ip:${clientIp(req)}`, 30, 600_000);
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     const code = [...randomBytes(10)].map((byte) => alphabet[byte & 31]).join('');
     const expiresAt = now() + 600_000;
-    transaction(() => {
-      run('DELETE FROM pairings WHERE issuer_id=? OR expires_at<=?', device.id, now());
-      run('INSERT INTO pairings(code_hash,issuer_id,expires_at) VALUES(?,?,?)', hash(code), device.id, expiresAt);
+    await transaction(async () => {
+      await run('DELETE FROM pairings WHERE issuer_id=? OR expires_at<=?', device.id, now());
+      await run('INSERT INTO pairings(code_hash,issuer_id,expires_at) VALUES(?,?,?)', hash(code), device.id, expiresAt);
     });
     res.json({ code, expiresAt: iso(expiresAt) });
   });
-  app.post('/api/pairings/redeem', (req, res) => {
-    const device = requireDevice(req, 'communicator');
-    limit(`pair-redeem:${device.id}`, 10, 600_000);
-    limit(`pair-redeem-ip:${clientIp(req)}`, 30, 600_000);
+  app.post('/api/pairings/redeem', async (req, res) => {
+    const device = await requireDevice(req, 'communicator');
+    await limit(`pair-redeem:${device.id}`, 10, 600_000);
+    await limit(`pair-redeem-ip:${clientIp(req)}`, 30, 600_000);
     const code = text(object(req.body).code, 20, 'Código').toUpperCase().replace(/[\s-]/g, '');
     if (!/^[A-Z2-7]{10}$/.test(code)) throw new HttpError(400, 'Código inválido ou expirado.');
-    transaction(() => {
-      const pairing = get<{ issuer_id: string; expires_at: number }>('SELECT issuer_id,expires_at FROM pairings WHERE code_hash=?', hash(code));
+    await transaction(async () => {
+      const pairing = await get<{ issuer_id: string; expires_at: number }>('SELECT issuer_id,expires_at FROM pairings WHERE code_hash=?', hash(code));
       if (!pairing || pairing.expires_at <= now()) throw new HttpError(400, 'Código inválido ou expirado.');
-      if (get('SELECT 1 FROM links WHERE support_id=? AND communicator_id=?', pairing.issuer_id, device.id)) {
+      if (await get('SELECT 1 FROM links WHERE support_id=? AND communicator_id=?', pairing.issuer_id, device.id)) {
         throw new HttpError(409, 'Estes dispositivos já estão vinculados.');
       }
-      run('INSERT INTO links(support_id,communicator_id) VALUES(?,?)', pairing.issuer_id, device.id);
-      run('DELETE FROM pairings WHERE code_hash=?', hash(code));
+      await run('INSERT INTO links(support_id,communicator_id) VALUES(?,?)', pairing.issuer_id, device.id);
+      await run('DELETE FROM pairings WHERE code_hash=?', hash(code));
     });
-    res.json(session(device));
+    res.json(await session(device));
   });
-  app.delete('/api/links/:peerId', (req, res) => {
-    const device = requireDevice(req);
+  app.delete('/api/links/:peerId', async (req, res) => {
+    const device = await requireDevice(req);
     const peerId = String(req.params.peerId);
     const supportId = device.role === 'support' ? device.id : peerId;
     const communicatorId = device.role === 'communicator' ? device.id : peerId;
-    transaction(() => {
-      run('DELETE FROM recipients WHERE device_id=? AND request_id IN (SELECT id FROM requests WHERE sender_id=?)', supportId, communicatorId);
-      run('DELETE FROM links WHERE support_id=? AND communicator_id=?', supportId, communicatorId);
+    await transaction(async () => {
+      await run('DELETE FROM deliveries WHERE recipient_id=? AND request_id IN (SELECT id FROM requests WHERE sender_id=?)', supportId, communicatorId);
+      await run('DELETE FROM recipients WHERE device_id=? AND request_id IN (SELECT id FROM requests WHERE sender_id=?)', supportId, communicatorId);
+      await run('DELETE FROM links WHERE support_id=? AND communicator_id=?', supportId, communicatorId);
     });
     res.json({ ok: true });
   });
-  app.put('/api/subscription', (req, res) => {
-    const device = requireDevice(req, 'support');
+  app.put('/api/subscription', async (req, res) => {
+    const device = await requireDevice(req, 'support');
     const sub = validateSubscription(req.body);
-    transaction(() => {
-      const owner = get<{ device_id: string }>('SELECT device_id FROM subscriptions WHERE endpoint=?', sub.endpoint);
+    await transaction(async () => {
+      const owner = await get<{ device_id: string }>('SELECT device_id FROM subscriptions WHERE endpoint=?', sub.endpoint);
       if (owner && owner.device_id !== device.id) throw new HttpError(409, 'Essa assinatura pertence a outro dispositivo.');
-      run(`INSERT INTO subscriptions(device_id,endpoint,p256dh,auth) VALUES(?,?,?,?) ON CONFLICT(device_id)
+      await run(`INSERT INTO subscriptions(device_id,endpoint,p256dh,auth) VALUES(?,?,?,?) ON CONFLICT(device_id)
         DO UPDATE SET endpoint=excluded.endpoint,p256dh=excluded.p256dh,auth=excluded.auth`, device.id, sub.endpoint, sub.keys.p256dh, sub.keys.auth);
-      run("UPDATE deliveries SET status='queued',attempts=0,next_attempt_at=? WHERE recipient_id=? AND status='failed'", now(), device.id);
+      await run("UPDATE deliveries SET status='queued',attempts=0,next_attempt_at=? WHERE recipient_id=? AND status='failed'", now(), device.id);
     });
+    const queued = await all<{ request_id: string }>("SELECT request_id FROM deliveries WHERE recipient_id=? AND status='queued'", device.id);
+    for (const row of queued) await schedulePending(row.request_id);
     res.json({ ok: true });
   });
-  app.delete('/api/subscription', (req, res) => {
-    const device = requireDevice(req, 'support');
-    run('DELETE FROM subscriptions WHERE device_id=?', device.id);
+  app.delete('/api/subscription', async (req, res) => {
+    const device = await requireDevice(req, 'support');
+    await run('DELETE FROM subscriptions WHERE device_id=?', device.id);
     res.json({ ok: true });
   });
   app.post('/api/push/test', async (req, res) => {
-    const device = requireDevice(req, 'support');
-    limit(`push-test:${device.id}`, 10, 600_000);
-    const sub = storedSubscription(device.id);
+    const device = await requireDevice(req, 'support');
+    await limit(`push-test:${device.id}`, 10, 600_000);
+    const sub = await storedSubscription(device.id);
     if (!sub) { res.json({ accepted: 0, failed: 1 }); return; }
     try {
       await send(sub, JSON.stringify({ title: 'NeuroIn', body: 'Notificação de teste.', url: '/rede' }));
       res.json({ accepted: 1, failed: 0 });
     } catch (error) {
-      if (expiredSubscription(error)) run('DELETE FROM subscriptions WHERE device_id=? AND endpoint=?', device.id, sub.endpoint);
+      if (expiredSubscription(error)) await run('DELETE FROM subscriptions WHERE device_id=? AND endpoint=?', device.id, sub.endpoint);
       res.json({ accepted: 0, failed: 1 });
     }
   });
   app.post('/api/requests', async (req, res) => {
-    const device = requireDevice(req, 'communicator');
-    limit(`requests:${device.id}`, 60, 600_000);
+    const device = await requireDevice(req, 'communicator');
+    await limit(`requests:${device.id}`, 60, 600_000);
     const body = object(req.body);
     if (typeof body.id !== 'string' || !uuid.test(body.id)) throw new HttpError(400, 'Identificador de pedido inválido.');
     const id = body.id.toLowerCase();
@@ -342,42 +393,43 @@ export function createApp(options: AppOptions) {
     if (expectedPeers !== undefined && (!Array.isArray(expectedPeers) || expectedPeers.length > 100
       || expectedPeers.some((peer) => typeof peer !== 'string' || !uuid.test(peer))
       || new Set(expectedPeers).size !== expectedPeers.length)) throw new HttpError(400, 'Lista de vínculos inválida.');
-    transaction(() => {
-      const existing = get<StoredRequest>(`${requestSelect} WHERE r.id=?`, id);
+    await transaction(async () => {
+      const existing = await get<StoredRequest>(`${requestSelect} WHERE r.id=?`, id);
       if (existing) {
         if (existing.sender_id !== device.id || existing.phrase !== phrase) throw new HttpError(409, 'Este identificador já foi usado para outro pedido.');
         return;
       }
-      const recipients = all<{ support_id: string }>('SELECT support_id FROM links WHERE communicator_id=?', device.id);
+      const recipients = await all<{ support_id: string }>('SELECT support_id FROM links WHERE communicator_id=?', device.id);
       if (Array.isArray(expectedPeers) && (expectedPeers.length !== recipients.length
         || recipients.some((recipient) => !expectedPeers.includes(recipient.support_id)))) {
         throw new HttpError(409, 'O vínculo mudou. Selecione novamente a mensagem.');
       }
       if (!recipients.length) throw new HttpError(409, 'Vincule um dispositivo de apoio antes de enviar um pedido.');
-      run('INSERT INTO requests(id,sender_id,phrase,created_at) VALUES(?,?,?,?)', id, device.id, phrase, now());
+      await run('INSERT INTO requests(id,sender_id,phrase,created_at) VALUES(?,?,?,?)', id, device.id, phrase, now());
       for (const recipient of recipients) {
-        run('INSERT INTO recipients(request_id,device_id) VALUES(?,?)', id, recipient.support_id);
-        run("INSERT INTO deliveries(request_id,recipient_id,status,next_attempt_at) VALUES(?,?,'queued',?)", id, recipient.support_id, now());
+        await run('INSERT INTO recipients(request_id,device_id) VALUES(?,?)', id, recipient.support_id);
+        await run("INSERT INTO deliveries(request_id,recipient_id,status,next_attempt_at) VALUES(?,?,'queued',?)", id, recipient.support_id, now());
       }
     });
+    await schedulePending(id);
     await processQueue(id, true);
-    res.json({ request: view(authorizedRequest(id, device)), push: pushStatus(id) });
+    res.json({ request: view(await authorizedRequest(id, device)), push: await pushStatus(id) });
   });
-  app.get('/api/requests', (req, res) => {
-    const device = requireDevice(req, 'support');
-    const requests = all<StoredRequest>(`${requestSelect} JOIN recipients p ON p.request_id=r.id
+  app.get('/api/requests', async (req, res) => {
+    const device = await requireDevice(req, 'support');
+    const requests = await all<StoredRequest>(`${requestSelect} JOIN recipients p ON p.request_id=r.id
       JOIN links l ON l.support_id=p.device_id AND l.communicator_id=r.sender_id
       WHERE p.device_id=? ORDER BY r.created_at DESC,r.id DESC LIMIT 100`, device.id);
     res.json({ requests: requests.map(view) });
   });
-  app.get('/api/requests/:id', (req, res) => {
-    res.json({ request: view(authorizedRequest(String(req.params.id), requireDevice(req))) });
+  app.get('/api/requests/:id', async (req, res) => {
+    res.json({ request: view(await authorizedRequest(String(req.params.id), await requireDevice(req))) });
   });
-  app.post('/api/requests/:id/read', (req, res) => {
-    const device = requireDevice(req, 'support');
-    const request = authorizedRequest(String(req.params.id), device);
-    run('UPDATE requests SET read_at=COALESCE(read_at,?) WHERE id=?', now(), request.id);
-    res.json({ request: view(authorizedRequest(request.id, device)) });
+  app.post('/api/requests/:id/read', async (req, res) => {
+    const device = await requireDevice(req, 'support');
+    const request = await authorizedRequest(String(req.params.id), device);
+    await run('UPDATE requests SET read_at=COALESCE(read_at,?) WHERE id=?', now(), request.id);
+    res.json({ request: view(await authorizedRequest(request.id, device)) });
   });
   app.use('/api', (_req, res) => { res.status(404).json({ error: 'Rota não encontrada.' }); });
   if (production) {
@@ -399,14 +451,18 @@ export function createApp(options: AppOptions) {
   };
   app.use(errorHandler);
   const reportQueueError = () => console.error('Não foi possível processar a fila de notificações.');
-  const startup = setTimeout(() => { void processQueue().catch(reportQueueError); }, 0);
-  const interval = setInterval(() => {
-    run('DELETE FROM rate_limits WHERE reset_at<=?', now());
-    run('DELETE FROM pairings WHERE expires_at<=?', now());
-    void processQueue().catch(reportQueueError);
-  }, 10_000);
-  interval.unref();
-  return { app, processQueue, async close() {
+  let startup: ReturnType<typeof setTimeout> | undefined;
+  let interval: ReturnType<typeof setInterval> | undefined;
+  if (options.backgroundProcessing !== false) {
+    startup = setTimeout(() => { void processQueue().catch(reportQueueError); }, 0);
+    interval = setInterval(() => { void (async () => {
+      await run('DELETE FROM rate_limits WHERE reset_at<=?', now());
+      await run('DELETE FROM pairings WHERE expires_at<=?', now());
+      await processQueue();
+    })().catch(reportQueueError); }, 10_000);
+    interval.unref();
+  }
+  return { app, processQueue, hasPendingDelivery, async close() {
     if (closed) return;
     closed = true;
     clearTimeout(startup);

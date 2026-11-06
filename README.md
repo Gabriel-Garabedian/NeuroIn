@@ -32,7 +32,7 @@ Conectar comunicação, acolhimento, autonomia e bem-estar. O perfil acadêmico 
 
 ## Tecnologias
 
-React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Lucide. CSS com tokens e componentes reutilizáveis. Poppins e Nunito servidas localmente via Fontsource. Node.js 24, Express, SQLite nativo e web-push atendem aos vínculos e notificações. Playwright e axe-core para validação.
+React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Lucide. CSS com tokens e componentes reutilizáveis. Poppins e Nunito servidas localmente via Fontsource. Node.js 24, Express, SQLite local ou Turso remoto e web-push atendem aos vínculos e notificações. Playwright e axe-core para validação.
 
 ## Executando localmente
 
@@ -110,6 +110,8 @@ Copie `.env.example` para `.env` (no PowerShell, `Copy-Item .env.example .env`).
 | --- | --- |
 | `PORT` | Porta interna da API, padrão 3001. |
 | `DB_PATH` | Arquivo SQLite, padrão `./data/neuroin.sqlite`. Use caminho absoluto em produção. |
+| `TURSO_DATABASE_URL` | URL `libsql://…` do banco remoto. Quando configurada, substitui o arquivo local. Obrigatória na Vercel. |
+| `TURSO_AUTH_TOKEN` | Credencial do banco remoto, somente no servidor. Obrigatória na Vercel. |
 | `PUBLIC_ORIGIN` | Origem exata do app. Em desenvolvimento: `http://127.0.0.1:5173`; em produção: `https://seu-dominio`, sem barra final. |
 | `VAPID_SUBJECT` | Contato do operador (`mailto:contato@seu-dominio`). |
 | `VAPID_PUBLIC_KEY` | Chave pública gerada para Web Push. |
@@ -161,9 +163,21 @@ Para proteger os códigos, o resgate permite 10 tentativas por aparelho e 30 por
 
 Não há contas ou recuperação de identidade. Apagar os dados do navegador perde a identificação daquele aparelho e exige novo vínculo. Use **Desvincular** antes de abandonar um aparelho. O protótipo não tem painel administrativo de retenção; planeje a guarda e limpeza do banco antes de coletar dados pessoais reais.
 
-GitHub Pages e hospedagem apenas estática não executam esta API. Um Vite aberto no computador também não fornece disponibilidade permanente aos celulares. Ao encerrar o servidor local/Codex, o recebimento remoto depende de um backend publicado e ativo. Esta implementação não cria nem presume esse serviço contratado.
+GitHub Pages e hospedagem apenas estática não executam esta API. Um Vite aberto no computador também não fornece disponibilidade permanente aos celulares. Ao encerrar o servidor local/Codex, o recebimento remoto depende de um backend publicado e ativo.
 
-**Vercel:** as Functions não garantem persistência do arquivo SQLite local nem a execução contínua da fila por `setInterval`. Para hospedar tudo na Vercel, é necessário conectar um banco persistente compatível (por exemplo, Turso) e adaptar o acesso ao banco e a execução da fila. Publicar somente o Vite não ativa as notificações entre celulares. Não use um SQLite em `/tmp` como banco de produção. Consulte a [orientação oficial sobre SQLite na Vercel](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel).
+### Vercel com Turso
+
+O repositório inclui as Functions em `api/`, cliente HTTP libSQL e um consumidor Vercel Queues para retries. Não usa disco temporário nem timers contínuos na Vercel. App e API são servidos no mesmo domínio HTTPS; o banco mantém identidades, vínculos, inscrições, pedidos e entregas entre reinícios e deploys.
+
+1. Importe este repositório como projeto Vite, Node **24.x**, build `npm run build`, instalação `npm ci` e saída `dist`.
+2. No Marketplace, conecte um banco Turso ao projeto. Configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN` nas variáveis de produção. O esquema é criado automaticamente no primeiro acesso, sem apagar os dados existentes.
+3. Configure as três variáveis `VAPID_*` e `PUBLIC_ORIGIN=https://<domínio-do-projeto>`, sem barra final. Não coloque segredos em variáveis `VITE_*`. Se `PUBLIC_ORIGIN` estiver ausente, o adaptador usa o domínio de produção fornecido em `VERCEL_PROJECT_PRODUCTION_URL`.
+4. Mantenha OIDC habilitado no projeto para o SDK de Queues. `vercel.json` registra o tópico `neuroin-push`; a plataforma invoca o consumidor interno, sem uma rota pública de disparo. Não é necessário criar um processo permanente ou Cron.
+5. Faça o deploy de produção. Consulte `/api/session`: deve retornar JSON com `device: null` em um navegador novo e a chave VAPID pública. Depois siga o roteiro de vínculo e recebimento acima, no mesmo endereço em ambos os aparelhos.
+
+Depois de persistir o pedido, a API publica o job durável e aguarda o envio inicial. Falhas transitórias entram em novas tentativas pela fila, limitadas a seis tentativas de transporte e mensagem de fila com validade de dez minutos; pedidos continuam consultáveis mesmo se o agendamento falhar. A fila reconsulta destinatários e vínculos atuais e não reenvia uma entrega já aceita. O app oferece retry explícito. A aceitação pela API, fila ou provedor de push não comprova exibição nem leitura no celular.
+
+O banco remoto deve ter backups e retenção configurados no provedor. Preserve banco e chaves VAPID ao atualizar o projeto. Para previews, use banco e origem próprios se quiser testar alterações sem compartilhar dados de produção. O plano gratuito está sujeito a limites de banco, Functions e [operações de Queues](https://vercel.com/docs/queues/pricing); exceder cotas pode interromper o serviço. Não use um SQLite em `/tmp` como banco de produção ([documentação oficial](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel)).
 
 ### Verificação
 

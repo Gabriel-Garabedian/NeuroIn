@@ -6,7 +6,7 @@ export default async function setup() {
   // O runner mantém os dois servidores vivos, sem processos CLI intermediários.
   // Somente o transporte externo é simulado; cookies, API e SQLite são reais.
   const keys = generateVAPIDKeys();
-  const service = createApp({
+  const service = await createApp({
     databasePath: `./output/e2e-${process.pid}-${Date.now()}.sqlite`,
     publicOrigin: "http://127.0.0.1:5173",
     vapid: { ...keys, subject: "mailto:teste@example.com" },

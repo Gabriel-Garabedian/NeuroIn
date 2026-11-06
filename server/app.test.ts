@@ -30,7 +30,7 @@ function subscription(token = 'one') {
 
 async function fixture(t: TestContext, options: Partial<AppOptions> = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'neuroin-api-'));
-  const service = createApp({ databasePath: join(directory, 'db.sqlite'), ...options });
+  const service = await createApp({ databasePath: join(directory, 'db.sqlite'), ...options });
   const server = service.app.listen(0, '127.0.0.1');
   await new Promise<void>((resolve) => server.once('listening', resolve));
   const address = server.address();
@@ -303,8 +303,8 @@ test('limite por IP permanece após reinício e impede rodízio de dispositivos'
 });
 
 test('produção exige HTTPS, usa cookie Secure e publica somente chave VAPID pública', async (t) => {
-  assert.throws(() => createApp({ databasePath: ':memory:', production: true }), /PUBLIC_ORIGIN/);
-  assert.throws(() => createApp({ databasePath: ':memory:', production: true, publicOrigin: 'http://example.com' }), /HTTPS/);
+  await assert.rejects(async () => createApp({ databasePath: ':memory:', production: true }), /PUBLIC_ORIGIN/);
+  await assert.rejects(async () => createApp({ databasePath: ':memory:', production: true, publicOrigin: 'http://example.com' }), /HTTPS/);
   const keys = generateVAPIDKeys();
   const f = await fixture(t, { production: true, publicOrigin: 'https://neuroin.example', vapid: { ...keys, subject: 'mailto:teste@example.com' } });
   const client = f.client();
@@ -344,4 +344,128 @@ test('produção separa limite por IP recebido do proxy local confiável', async
   }
   assert.equal((await f.client().request('/api/devices', 'POST', { role: 'support' }, headers)).status, 429);
   assert.equal((await f.client().request('/api/devices', 'POST', { role: 'support' }, { ...headers, 'x-forwarded-for': '198.51.100.8' })).status, 200);
+});
+
+test('modo serverless não agenda timers locais e exige destino persistente explícito', async (t) => {
+  const interval = t.mock.method(globalThis, 'setInterval');
+  const timeout = t.mock.method(globalThis, 'setTimeout');
+  const service = await createApp({ databasePath: ':memory:', backgroundProcessing: false });
+  try {
+    assert.equal(interval.mock.callCount(), 0);
+    assert.equal(timeout.mock.callCount(), 0);
+  } finally {
+    interval.mock.restore();
+    timeout.mock.restore();
+    await service.close();
+  }
+  await assert.rejects(async () => createApp({ databaseUrl: 'invalid://db', backgroundProcessing: false }), /database|banco|URL|scheme/i);
+});
+
+test('serverless agenda retry persistido e encerra pendência após envio ou desvínculo', async (t) => {
+  const pending: string[] = [];
+  let fail = true;
+  const f = await fixture(t, {
+    backgroundProcessing: false,
+    onPendingRequest: async (id) => { pending.push(id); },
+    sendPush: async () => { if (fail) throw new Error('offline'); },
+  });
+  const support = await f.device('support');
+  const communicator = await f.device('communicator');
+  await f.pair(support, communicator);
+  await support.request('/api/subscription', 'PUT', subscription());
+  const body = { id: randomUUID(), phrase: 'Ajuda' };
+  const response = await communicator.request('/api/requests', 'POST', body);
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.push, { accepted: 0, failed: 1, pending: 0 });
+  assert.deepEqual(pending, [body.id]);
+  assert.equal(await f.service.hasPendingDelivery(body.id), true);
+  await support.request('/api/requests');
+  assert.deepEqual(pending, [body.id]);
+  fail = false;
+  assert.equal((await communicator.request('/api/requests', 'POST', body)).body.push?.accepted, 1);
+  assert.equal(await f.service.hasPendingDelivery(body.id), false);
+  assert.deepEqual(pending, [body.id, body.id]);
+  fail = true;
+  const unlinked = { id: randomUUID(), phrase: 'Água' };
+  await communicator.request('/api/requests', 'POST', unlinked);
+  assert.equal(await f.service.hasPendingDelivery(unlinked.id), true);
+  await support.request(`/api/links/${communicator.id}`, 'DELETE');
+  assert.equal(await f.service.hasPendingDelivery(unlinked.id), false);
+});
+
+test('falha do agendamento preserva pedido e não confirma recebimento', async (t) => {
+  const errors: unknown[][] = [];
+  t.mock.method(console, 'error', (...args: unknown[]) => { errors.push(args); });
+  const f = await fixture(t, {
+    backgroundProcessing: false,
+    onPendingRequest: async () => { throw new Error('sensitive-provider-token'); },
+  });
+  const support = await f.device('support');
+  const communicator = await f.device('communicator');
+  await f.pair(support, communicator);
+  const body = { id: randomUUID(), phrase: 'Preciso de ajuda' };
+  const response = await communicator.request('/api/requests', 'POST', body);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.push?.accepted, 0);
+  assert.equal(response.body.push?.failed, 1);
+  assert.equal((await support.request('/api/requests')).body.requests?.[0].id, body.id);
+  assert.equal(await f.service.hasPendingDelivery(body.id), true);
+  assert.equal(errors.length, 1);
+  assert.ok(!JSON.stringify(errors).includes('sensitive-provider-token'));
+});
+
+test('reativar inscrição agenda novamente um pedido que esgotou as tentativas', async (t) => {
+  let now = Date.now();
+  const scheduled: string[] = [];
+  const f = await fixture(t, { backgroundProcessing: false, now: () => now,
+    onPendingRequest: async (id) => { scheduled.push(id); }, sendPush: async () => { throw new Error('offline'); } });
+  const support = await f.device('support');
+  const communicator = await f.device('communicator');
+  await f.pair(support, communicator);
+  const id = randomUUID();
+  await communicator.request('/api/requests', 'POST', { id, phrase: 'Ajuda' });
+  for (const delay of [5000, 10000, 20000, 40000, 80000]) { now += delay; await f.service.processQueue(id); }
+  assert.equal(await f.service.hasPendingDelivery(id), false);
+  await support.request('/api/subscription', 'PUT', subscription());
+  assert.equal(await f.service.hasPendingDelivery(id), true);
+  assert.deepEqual(scheduled, [id, id]);
+});
+
+test('duas instâncias compartilham banco, sessão e deduplicação atômica', async (t) => {
+  let sends = 0;
+  const sendPush = async () => { sends++; await new Promise((resolve) => setTimeout(resolve, 20)); };
+  const first = await fixture(t, { backgroundProcessing: false, sendPush });
+  const second = await fixture(t, { databasePath: join(first.directory, 'db.sqlite'), backgroundProcessing: false, sendPush });
+  const support = await first.device('support');
+  const communicator = await first.device('communicator');
+  await first.pair(support, communicator);
+  await support.request('/api/subscription', 'PUT', subscription());
+  const body = { id: randomUUID(), phrase: 'Ajuda' };
+  const responses = await Promise.all([
+    communicator.request('/api/requests', 'POST', body),
+    second.client(communicator.cookie).request('/api/requests', 'POST', body),
+  ]);
+  assert.deepEqual(responses.map((response) => response.status), [200, 200]);
+  assert.equal((await second.client(support.cookie).request('/api/requests')).body.requests?.length, 1);
+  assert.equal(sends, 1);
+  await second.service.close();
+});
+
+test('falha no meio da transação não deixa pedido nem destinatários parciais', async (t) => {
+  const f = await fixture(t, { backgroundProcessing: false });
+  const support = await f.device('support');
+  const communicator = await f.device('communicator');
+  await f.pair(support, communicator);
+  const db = new DatabaseSync(join(f.directory, 'db.sqlite'));
+  db.exec("CREATE TRIGGER reject_delivery BEFORE INSERT ON deliveries BEGIN SELECT RAISE(ABORT, 'test rollback'); END;");
+  const errorLog = t.mock.method(console, 'error', () => undefined);
+  const body = { id: randomUUID(), phrase: 'Ajuda' };
+  assert.equal((await communicator.request('/api/requests', 'POST', body)).status, 500);
+  assert.equal((await support.request('/api/requests')).body.requests?.length, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM requests').get()?.count, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM recipients').get()?.count, 0);
+  db.exec('DROP TRIGGER reject_delivery');
+  db.close();
+  errorLog.mock.restore();
+  assert.equal((await communicator.request('/api/requests', 'POST', body)).status, 200);
 });

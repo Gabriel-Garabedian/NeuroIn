@@ -9,8 +9,10 @@ if ((publicKey || privateKey) && ![publicKey, privateKey, subject].every(Boolean
 }
 const port = Number(process.env.PORT ?? 3001);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválida.');
-const service = createApp({
+const service = await createApp({
   databasePath: process.env.DB_PATH ?? './data/neuroin.sqlite',
+  databaseUrl: process.env.TURSO_DATABASE_URL,
+  databaseAuthToken: process.env.TURSO_AUTH_TOKEN,
   production,
   publicOrigin: process.env.PUBLIC_ORIGIN,
   vapid: publicKey && privateKey && subject ? { publicKey, privateKey, subject } : undefined,
