@@ -2,6 +2,11 @@
 
 Comunicação, autonomia e acolhimento.
 
+Aplicativo publicado: [neuroin-psi.vercel.app](https://neuroin-psi.vercel.app).
+Para conectar os dois celulares, abra [Rede de apoio](https://neuroin-psi.vercel.app/rede)
+e siga o roteiro de notificações abaixo. O recebimento em aparelho físico precisa
+ser conferido nos próprios celulares; os testes publicados descritos abaixo não o comprovam.
+
 Identidade colorida com logo de quatro pétalas ao redor de um coração (a rede de apoio
 em volta da pessoa), paleta azul, amarelo, verde e coral, tela de abertura animada e
 layout próprio para computador (menu lateral e grades em colunas); no celular ocupa a
@@ -190,6 +195,15 @@ npm test -- --workers=1
 ```
 
 Testes de backend usam SQLite temporário e transporte Web Push injetado. Os de integração iniciam API e frontend juntos por `tests/global-setup.ts`, com contextos de navegador independentes e banco próprio por execução em `output/e2e-<execução>.sqlite`; não representam entrega em aparelho físico. O setup e seu transporte simulado não entram no build de produção. Para comprovar o recebimento real, siga o roteiro acima em dois celulares e observe a notificação do sistema com o site em segundo plano, inclusive após reiniciar o backend.
+
+Na publicação de 06/11/2026, o smoke HTTPS com Turso real passou em contextos
+independentes: vínculo por UI, código de uso único, duas redes isoladas, Água,
+consulta, leitura explícita, envio concorrente deduplicado, voz/reload sem novo
+pedido, Service Worker e recuperação em nova sessão. A fila real também foi
+exercitada com uma inscrição sintética inválida: o retry automático chegou ao
+provedor, a rejeição invalidou a inscrição e o vínculo de teste foi removido.
+Isso verifica transporte e tratamento de falha, sem comprovar notificação ou som
+em celular físico. Os testes locais passaram: 23 backend e 42 Playwright.
 
 ## Observação
 

@@ -236,3 +236,48 @@ foram configurados exclusivamente no ambiente do projeto, sem segredos no Git.
 
 Neste ponto o deploy e o smoke HTTPS/Turso ainda estão pendentes; conferir
 o registro posterior antes de declarar publicação ou entrega real em celular.
+
+### Deploy concluído e smoke público — 06/11/2026
+
+Publicado em **https://neuroin-psi.vercel.app**, rede em `/rede`. Backend e frontend
+no mesmo domínio HTTPS, banco Turso remoto e Vercel Queues. O serviço não depende
+do computador/Codex aberto. Apenas o projeto NeuroIn foi alterado na equipe Voryn.
+Plano Turso Starter gratuito confirmado; nenhum plano pago contratado.
+
+- Código publicado: commit `09654c50504a766f2f9ffa7f2bfbef2538c8ff5a`, deployment
+  `dpl_5GaZZM4Hzm1eZ6YKnMMP7af2156u`, estado READY confirmado pela Vercel.
+  Build remoto passou com Node 24. Commits anteriores de diagnóstico/adaptação:
+  `d3d17a0`, `2f85985`, `d294016`; todos enviados à main. Commits posteriores
+  de documentação não alteram o aplicativo publicado.
+- Primeiro smoke encontrou SERVER_ERROR na inicialização SQL. Separar os
+  PRAGMAs locais do esquema remoto resolveu; `/api/session` passou a responder
+  JSON 200, sem revelar chaves privadas. Diagnóstico registra somente erro
+  sanitizado e presença de configuração, sem tokens ou URL do banco.
+- Segundo smoke encontrou 404 da plataforma nas rotas com múltiplos segmentos.
+  Substituído catch-all de arquivo por `api/index.ts` e rewrite explícito
+  `/api/:path*` para `/api`; app recebe o caminho original. Rotas profundas
+  confirmadas como JSON da API, não página 404 nem HTML de SPA.
+- Smoke Playwright real no endereço público passou: vínculo por UI, reuso de
+  código rejeitado, dois pares/redes isolados, Água transmitida/persistida,
+  consulta remota e leitura explícita, mesmo UUID concorrente cria um pedido,
+  Falar/reload não enviam, SW e manifesto públicos. Sem erros JS capturados.
+- Nova sessão de API recuperou pedido e readAt; também consultado pelo hostname
+  independente do deployment com credencial somente do dispositivo de teste.
+  Captura revista em `output/playwright/cloud-support.png`; scripts e estados
+  temporários de teste ficam ignorados em `output/playwright/`, fora do Git.
+- Teste de Queues real: inscrição sintética com chave válida e endpoint FCM
+  inexistente; ativação reprogramou pedidos falhos. Sem disparo manual de pedido
+  ou teste de push, a inscrição foi invalidada em menos de dez segundos pelo
+  consumidor automático após rejeição do provedor. Isso comprova worker/retry,
+  transporte web-push e limpeza 404/410, não recebimento físico. Ao terminar,
+  inscrição e vínculo de teste removidos; consulta ao pedido pela ex-rede deu404.
+- Lint e typecheck passaram após as correções; build remoto final passou.
+  Última suíte backend:23/23; frontend/API locais:42/42; validador de setup passou.
+  Nenhum segredo ou banco entrou no Git. VAPID e credenciais de banco somente
+  nas variáveis do projeto Vercel; preservar ao atualizar/republicar.
+
+Pendente: observar recebimento, clique e eventual som em Android/iPhone físicos.
+Nos celulares usar sempre o domínio canônico acima; mãe gera vínculo em `/rede`,
+filho confirma código, mãe ativa notificações e testa. iPhone precisa instalar
+na Tela de Início e abrir pelo ícone. Entrega/som dependem do sistema, permissões
+e conexão. Não afirmar recebimento real só pelo sucesso de API, SDK ou fila.
