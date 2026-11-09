@@ -281,3 +281,43 @@ Nos celulares usar sempre o domínio canônico acima; mãe gera vínculo em `/re
 filho confirma código, mãe ativa notificações e testa. iPhone precisa instalar
 na Tela de Início e abrir pelo ícone. Entrega/som dependem do sistema, permissões
 e conexão. Não afirmar recebimento real só pelo sucesso de API, SDK ou fila.
+
+### Localizacao da vinculacao — 09/11/2026
+
+Usuario informou nao encontrar vinculacao no dominio canonico. Inspecao real
+Playwright de https://neuroin-psi.vercel.app/rede em sessao nova confirmou
+Aparelhos e notificacoes, botao Vincular dispositivo e campo Codigo de
+vinculacao presentes. Em viewport 390x844, o botao exige rolagem abaixo do
+cartao Ana Souza. O atalho Minha rede de apoio e a aba Equipe levam a /equipe,
+que apresenta contatos ficticios; o painel real esta em /rede. Ajustes tem
+Como voce usa o NeuroIn / Rede de apoio para acessar essa tela. Capturas em
+output/playwright/vinculo-publicado-mobile.png e vinculo-publicado-botao.png
+(ignoradas pelo Git). Nao foi gerado codigo nem feito vinculo ou envio.
+O usuario confirmou o dominio; caminho/tela exatos no aparelho nao observados.
+Nenhuma alteracao no aplicativo ou deploy nesta verificacao.
+
+### Falar reenvia a mensagem por toque — 09/11/2026
+
+Usuario confirmou ter encontrado o painel, vinculado os celulares e observado
+uma notificacao. Pediu explicitamente uma nova notificacao a cada toque manual
+em Falar (nao repeticao automatica ate leitura). Implementado no handler de
+ConfirmationFeedback compartilhado pelos cinco fluxos. CommunicationProvider
+expoe repeat usando queue existente: UUID novo por toque, sem debounce de escolha;
+choose preserva protecao de 1500 ms no cartao. Selecao inicial ainda envia;
+fala automatica, mount e reload nao geram extras. Retry continua com mesmo UUID,
+isolamento de vinculos e persistencia de falhas preservados. Nenhum esquema,
+chave VAPID, service worker ou backend alterado. Limite existente: 60 tentativas
+de envio/aparelho/10 min; entrega/som dependem do sistema e conexao.
+
+Testes novos em push.spec.ts verificam tres toques, quatro UUIDs distintos
+(incluindo selecao inicial), mesma frase, push aceito pelo transporte simulado,
+novos pedidos nao lidos apos leitura do primeiro e ausencia de extras ao navegar,
+com voz manual e automatica. Primeiro ensaio falhou por mock PushManager
+registrado sem recarregar; corrigido setup antes de alterar producao. Red valido:
+esperava quatro pedidos e obteve um; worker seguinte encerrou inesperadamente
+no Windows. Execucao final focada passou 16/16 (push + speech), backend 23/23,
+lint/typecheck/build e git diff --check passaram. Revisao separada Code Reviewer
+nao encontrou problemas concretos; nao executou testes nem alterou arquivos.
+README atualizado. Publicacao desta mudanca ainda pendente neste ponto;
+consultar registro posterior. Recebimento repetido em aparelho fisico ainda
+nao verificado; relato do usuario confirma somente o envio anterior inicial.

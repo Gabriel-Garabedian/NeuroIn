@@ -78,7 +78,7 @@ export function ConfirmationFeedback({
       <div className="confirmation-actions">
         <button
           className="button button-primary"
-          onClick={speak}
+          onClick={() => { speak(); communication.repeat(phrase); }}
           disabled={!supported || !voice}
         >
           <Volume2 size={20} aria-hidden="true" /> Falar

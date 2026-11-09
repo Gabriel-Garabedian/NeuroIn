@@ -21,6 +21,7 @@ type CommunicationState = {
   sessionError: string;
   refresh: () => Promise<Session>;
   choose: (phrase: string) => void;
+  repeat: (phrase: string) => void;
   retry: (id: string) => void;
   retrySelection: () => Promise<void>;
   discard: (id: string) => void;
@@ -150,7 +151,7 @@ export function CommunicationProvider({ children }: { children: ReactNode }) {
         : "Pedido salvo na rede. A leitura ainda não foi confirmada." } : current);
     } catch (error) { setFeedback((current) => current && current.id === feedback.id ? { ...current, message: (error as Error).message } : current); }
   }
-  return <Context.Provider value={{ session, sessionError, refresh, choose, retry, retrySelection, discard, pending, feedback, checkRead }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ session, sessionError, refresh, choose, repeat: (phrase) => queue(phrase, session), retry, retrySelection, discard, pending, feedback, checkRead }}>{children}</Context.Provider>;
 }
 // O estado e os handlers compartilham este módulo pequeno.
 // eslint-disable-next-line react-refresh/only-export-components

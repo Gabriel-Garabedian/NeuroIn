@@ -135,11 +135,11 @@ O proxy do Vite encaminha `/api` para `http://127.0.0.1:3001`. `API_PROXY_TARGET
 3. No celular de Ana, abra `/rede`, informe o **Código de vinculação** e toque em **Confirmar vínculo**. Confira a indicação de aparelho vinculado. Abra **Ir para a comunicação**.
 4. No celular da mãe, toque em **Ativar notificações** e autorize a solicitação do navegador. A permissão nunca é solicitada só por abrir a página.
 5. Toque em **Enviar notificação de teste**. Confira a notificação do sistema no próprio celular. Uma resposta de sucesso da API significa apenas que o serviço de push aceitou o envio.
-6. No aparelho de Ana, selecione **Água**. A frase continua visível e **Falar** continua reproduzindo somente nesse aparelho. O pedido é salvo e enviado à rede vinculada.
+6. No aparelho de Ana, selecione **Água**. O pedido é salvo e enviado à rede vinculada. Cada toque em **Falar** reproduz a voz nesse aparelho e envia um novo pedido com a mesma frase, gerando outra notificação para a rede, mesmo que o anterior já tenha sido lido.
 7. Na mãe, confira a notificação **Novo pedido de Ana / Eu preciso de água.** Toque nela para abrir `/rede?pedido=…` e consultar o pedido real destacado. **Marcar como lido** registra a confirmação; apenas listar os pedidos não confirma leitura.
 8. No aparelho de Ana, **Consultar leitura** mostra somente a evidência registrada pela rede. Use **Tentar envio novamente** quando necessário; a mesma tentativa mantém o identificador, evitando criar outro pedido.
 
-Dor envia apenas depois da confirmação de região/intensidade. Sensibilidades envia apenas a escolha final de ajuda. Abrir telas, atualizar a página, React StrictMode e apertar **Falar** não enviam pedidos. Falhas preservam a mensagem local; tentativas pendentes podem ser consultadas em `/rede`. Sem rede, nenhuma entrega é prometida.
+Dor envia apenas depois da confirmação de região/intensidade. Sensibilidades envia apenas a escolha final de ajuda. Abrir telas, atualizar a página, React StrictMode e a reprodução automática da voz não enviam pedidos extras. Cada toque manual em **Falar** cria um pedido independente; **Tentar envio novamente** preserva o identificador do pedido que falhou. O limite existente de 60 tentativas de envio por aparelho a cada 10 minutos continua valendo. Falhas preservam a mensagem local; tentativas pendentes podem ser consultadas em `/rede`. Sem rede, nenhuma entrega é prometida.
 
 **Android:** navegador atualizado com Push API, Service Worker e Notifications API; permitir notificações no navegador e nas configurações do sistema. A instalação pelo menu do navegador é opcional onde Web Push funciona em abas.
 

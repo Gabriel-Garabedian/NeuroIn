@@ -97,7 +97,7 @@ test("desvinculação pelo outro aparelho remove o pedido aberto e preserva aces
   await expect(list.getByText("Eu preciso de água.", { exact: true })).toHaveCount(0);
 });
 
-test("dois aparelhos enviam, consultam e confirmam leitura sem reenviar ao falar ou recarregar", async ({ network, browser }) => {
+test("dois aparelhos enviam, consultam e confirmam leitura sem reenviar ao recarregar", async ({ network, browser }) => {
   const { mother, child, momPage, childPage } = network;
   const posts: string[] = [];
   childPage.on("request", (request) => {
@@ -109,7 +109,6 @@ test("dois aparelhos enviam, consultam e confirmam leitura sem reenviar ao falar
   await childPage.getByRole("button", { name: "Água", exact: true }).click();
   await expect(childPage.getByRole("heading", { name: "Eu preciso de água." })).toBeVisible();
   await expect(childPage.getByText(/Pedido salvo na rede/)).toBeVisible();
-  await childPage.getByRole("button", { name: "Falar", exact: true }).click();
   await momPage.getByRole("button", { name: "Atualizar pedidos", exact: true }).click();
   const list = momPage.getByRole("region", { name: "Pedidos reais" });
   await expect(list.getByText("Eu preciso de água.", { exact: true })).toHaveCount(1);
@@ -147,6 +146,42 @@ test("dois aparelhos enviam, consultam e confirmam leitura sem reenviar ao falar
   expect(posts).toEqual([sent.id]);
   expect((await child.request.get(`/api/requests/${sent.id}`)).ok()).toBeTruthy();
 });
+
+for (const automatic of [false, true]) {
+  test(`cada toque em Falar envia um novo pedido com voz ${automatic ? "automática" : "manual"}`, async ({ network }) => {
+    const { mother, momPage, childPage } = network;
+    await simulateBrowserPush(mother);
+    await openWithSession(momPage, "/rede");
+    await momPage.getByRole("button", { name: "Ativar notificações", exact: true }).click();
+    await expect(momPage.getByText("Há uma inscrição de notificações neste aparelho.", { exact: true })).toBeVisible();
+    if (automatic) {
+      await childPage.goto("/ajustes");
+      await childPage.getByLabel("Confirmar antes de falar", { exact: true }).uncheck();
+    }
+    const posts: string[] = [];
+    childPage.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/requests" && request.method() === "POST") posts.push(request.postDataJSON().id);
+    });
+    await openWithSession(childPage, "/inicio");
+    await childPage.getByRole("button", { name: "Água", exact: true }).click();
+    await expect(childPage.getByText(/O serviço de notificações aceitou o envio/)).toBeVisible();
+    expect(posts).toHaveLength(1);
+    const [first] = await requests(mother);
+    expect((await mother.request.post(`/api/requests/${first.id}/read`, { headers: { Origin: origin }, data: {} })).ok()).toBeTruthy();
+    for (let tap = 0; tap < 3; tap++) {
+      await childPage.getByRole("button", { name: "Falar", exact: true }).click();
+    }
+    await expect.poll(async () => (await requests(mother)).length).toBe(4);
+    await expect.poll(() => childPage.evaluate((key) => JSON.parse(localStorage.getItem(key) || "[]").length, pendingKey)).toBe(0);
+    expect(posts).toHaveLength(4);
+    expect(new Set(posts).size).toBe(4);
+    const saved = await requests(mother);
+    expect(saved.every((item) => item.phrase === "Eu preciso de água.")).toBe(true);
+    expect(saved.filter((item) => item.id !== first.id).every((item) => item.readAt === null)).toBe(true);
+    await openWithSession(childPage, "/inicio");
+    expect(posts).toHaveLength(4);
+  });
+}
 
 test("ativa e desativa inscrição real na API com PushManager e transporte externo simulados", async ({ network }) => {
   const { mother, momPage, childPage } = network;
