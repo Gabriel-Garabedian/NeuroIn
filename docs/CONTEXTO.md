@@ -321,3 +321,31 @@ nao encontrou problemas concretos; nao executou testes nem alterou arquivos.
 README atualizado. Publicacao desta mudanca ainda pendente neste ponto;
 consultar registro posterior. Recebimento repetido em aparelho fisico ainda
 nao verificado; relato do usuario confirma somente o envio anterior inicial.
+
+### Repeticao por Falar publicada e conferida — 09/11/2026
+
+Commit fd929e8a27f83d7b51e0a83424552feafc5dea6c enviado a main.
+Deploy Vercel dpl_BDLthXjSuCrG5Xifvw18yKumHefa READY, projeto neuroin
+prj_g5HARp9oQLHzDnNgEmMu1ADTVNJX/equipe Voryn; alias canonico
+https://neuroin-psi.vercel.app confirmado apontando ao novo deployment.
+Nenhuma variavel, chave VAPID, banco ou projeto externo foi alterado.
+Build remoto concluiu; logs apresentaram avisos npm allowScripts de esbuild,
+sem impedir READY. CLI gh nao esta no PATH; push por git e deploy pelo plugin
+Vercel funcionaram, sem dependencia de gh.
+
+Smoke novo em output/playwright/smoke-repeat-falar.mjs, executado com node e
+exit 0 no dominio canonico: pareamento de dois contextos novos, selecao Agua
+criou um pedido, tres toques Falar criaram tres outros UUIDs com a mesma frase.
+Primeiro pedido marcado lido antes dos toques, seguintes nao lidos; navegar
+nao criou extra; nenhum pageerror. Sem inscricao push nesses dispositivos
+sinteticos: smoke verifica frontend/API/persistencia reais, nao entrega fisica.
+Transporte externo aceito foi verificado somente nos testes locais simulados.
+Finally removeu e verificou vinculo/destinatarios de teste (lista da mae vazia).
+Quatro registros sinteticos do emissor permanecem, pois desvincular nao apaga
+historico do emissor e nao ha endpoint de exclusao. Nao foram consultadas nem
+modificadas sessoes/vinculos dos celulares do usuario.
+
+Reabrir/atualizar NeuroIn no aparelho da crianca para carregar o novo JS,
+sem limpar dados do navegador (preservar vinculo). Pendente observar avisos
+e som repetidos nos aparelhos reais. O usuario ja confirmou recebimento inicial
+na versao anterior; isso nao comprova recebimento repetido desta publicacao.
