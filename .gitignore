@@ -17,3 +17,6 @@ dist-server/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+graphify-out/
+output/*.png
