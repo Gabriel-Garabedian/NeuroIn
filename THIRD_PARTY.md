@@ -21,3 +21,7 @@ atribui uma licença única ao projeto NeuroIn.
 - A skill agency-agents e seu catálogo foram criados para consultar os perfis
   TOML no Cloud, sem afirmar suporte a execução de subagentes personalizados.
 - Perfis originais TOML foram preservados; hooks de plugins não foram copiados.
+
+### React Bits
+
+O componente `src/components/AnimatedContent.tsx` é adaptado de [React Bits Animated Content](https://github.com/DavidHDev/react-bits/blob/main/src/ts-default/Animations/AnimatedContent/AnimatedContent.tsx), Copyright (c) 2026 David Haz. A licença MIT com Commons Clause está reproduzida em [docs/REACT_BITS_LICENSE.md](docs/REACT_BITS_LICENSE.md); ela restringe a redistribuição ou venda dos componentes isoladamente.
