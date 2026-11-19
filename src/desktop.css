@@ -60,7 +60,7 @@
     font-weight: 800; font-size: 15px; line-height: 1.35;
   }
   .side-calm:hover { background: var(--calm-bg-hover); }
-  .side-calm small { display: block; font-weight: 600; font-size: 12.5px; opacity: .85; margin-top: 2px; }
+  .side-calm small { display: block; font-weight: 600; font-size: 13px; opacity: .9; margin-top: 2px; }
 
   /* Área de conteúdo */
   main { grid-column: 2; grid-row: 2; padding: 44px 56px 72px; width: 100%; max-width: 1240px; margin: 0 auto; min-height: 0; }

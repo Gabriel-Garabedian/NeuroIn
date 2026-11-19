@@ -31,7 +31,7 @@
 .care-page .pain-levels { gap: 6px; }
 .care-page .pain-level { min-height: 88px; padding: 13px 3px; border-radius: 10px; }
 .care-page .pain-level strong { font-size: 25px; }
-.care-page .pain-level span { font-size: 12px; line-height: 1.35; }
+.care-page .pain-level span { font-size: 12.5px; line-height: 1.35; }
 .care-page .pain-level[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--primary); border-width: 1px; }
 .care-summary { padding: 18px; margin: 16px 0 20px; background: var(--primary-light); border-left: 3px solid var(--primary); border-radius: 0 12px 12px 0; }
 .care-summary h2 { font-size: 14px; color: var(--muted); margin-bottom: 9px; }

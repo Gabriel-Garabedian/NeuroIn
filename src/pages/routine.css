@@ -5,7 +5,7 @@
   color: var(--routine-navy);
 }
 .routine-overview { padding: 22px; margin-bottom: 30px; background: var(--primary-light); border: 1px solid var(--border); border-radius: 18px 18px 18px 5px; }
-.routine-date { display: flex; align-items: flex-start; gap: 9px; font-size: 0.85rem; color: var(--muted); margin-bottom: 21px; }
+.routine-date { display: flex; align-items: flex-start; gap: 9px; font-size: 0.9rem; color: var(--muted); margin-bottom: 21px; }
 .routine-progress-label { display: grid; gap: 8px; margin-bottom: 14px; }
 .routine-progress-label strong { font-size: 1.1rem; }
 .routine-progress-label > span { font-size: 0.9rem; color: var(--muted); }
@@ -13,7 +13,7 @@
 .routine-progress::-webkit-progress-bar { background: var(--border); border-radius: 8px; }
 .routine-progress::-webkit-progress-value { background: var(--success); border-radius: 8px; }
 .routine-progress::-moz-progress-bar { background: var(--success); border-radius: 8px; }
-.routine-progress-note { display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin-top: 15px; }
+.routine-progress-note { display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-top: 15px; }
 .routine-progress-note svg { margin-top: 3px; }
 .routine-timeline { list-style: none; padding: 0; margin: 20px 0 0; }
 .routine-item { display: grid; grid-template-columns: 19px minmax(0, 1fr); gap: 10px; position: relative; padding-bottom: 17px; }
@@ -41,9 +41,9 @@
 .routine-activity-body h3 { font-size: 1rem; line-height: 1.4; margin-bottom: 5px; font-weight: 600; }
 .routine-activity-body p { line-height: 1.6; color: var(--muted); font-size: 0.88rem; }
 .routine-activity-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 12px; }
-.routine-detail-link { display: inline-flex; align-items: center; gap: 3px; min-height: 44px; color: var(--primary); font-size: 0.85rem; font-weight: 800; }
+.routine-detail-link { display: inline-flex; align-items: center; gap: 3px; min-height: 44px; color: var(--primary); font-size: 0.9rem; font-weight: 800; }
 .routine-detail-link:hover { text-decoration: underline; }
-.routine-complete-button { font-size: 0.8rem; min-height: 44px; gap: 5px; padding: 9px 10px; border-radius: 8px; }
+.routine-complete-button { font-size: 0.875rem; min-height: 44px; gap: 5px; padding: 9px 10px; border-radius: 8px; }
 .routine-kind-note { display: flex; gap: 11px; padding: 22px 0; border-top: 1px solid var(--border); margin-top: 12px; }
 .routine-note-icon { color: var(--primary); margin-top: 3px; }
 .routine-kind-note p { font-size: 0.9rem; line-height: 1.7; color: var(--muted); }
@@ -56,13 +56,13 @@
 .routine-checklist { padding: 21px; border: 1px solid var(--border); }
 .routine-checklist .section-heading { margin-bottom: 6px; }
 .routine-step-instruction { margin-bottom: 21px; font-size: 0.9rem; }
-.routine-step-progress { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; margin-bottom: 15px; }
+.routine-step-progress { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; margin-bottom: 15px; }
 .routine-step-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .routine-step { min-height: 72px; padding: 13px 11px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; font-weight: 700; line-height: 1.5; font-size: 0.95rem; }
 .routine-step:hover { background: var(--primary-light); }
 .routine-step.is-checked { background: var(--success-light); border-color: var(--success); color: var(--success); }
 .routine-step input { width: 22px; height: 22px; accent-color: var(--success); flex-shrink: 0; cursor: pointer; margin: 0; }
-.routine-step-number { display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: var(--primary-light); color: var(--primary); border-radius: 6px; flex-shrink: 0; font-size: 0.8rem; }
+.routine-step-number { display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: var(--primary-light); color: var(--primary); border-radius: 6px; flex-shrink: 0; font-size: 0.875rem; }
 .routine-step.is-checked .routine-step-number { background: var(--surface); color: var(--success); }
 .routine-finish { margin-top: 25px; text-align: center; }
 .routine-finish-button { width: 100%; min-height: 52px; padding: 13px; }
@@ -74,7 +74,7 @@
 .high-contrast .routine-step.is-checked { border-color: var(--border); }
 .routine-current-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 62px; margin-top: 18px; padding: 12px 0 2px; border-top: 1px solid var(--border); color: var(--primary); }
 .routine-current-link > span { display: grid; gap: 3px; }
-.routine-current-link > span > span { font-size: 0.8rem; color: var(--muted); }
+.routine-current-link > span > span { font-size: 0.875rem; color: var(--muted); }
 .routine-current-link strong { font-size: 1rem; }
 .routine-current-link:hover strong { text-decoration: underline; }
 .routine-current-link > a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 9px; background: var(--surface); }

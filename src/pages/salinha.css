@@ -1,12 +1,8 @@
-.is-salinha main { padding: 0; }
-.rehearsal { background: #f7faff; min-height: 100dvh; color: var(--text); padding-bottom: 94px; }
-.rehearsal-top { height: 76px; display: flex; align-items: center; justify-content: center; background: var(--surface); border-bottom: 1px solid var(--border); position: relative; }
-.rehearsal-top .brand { font-size: 25px; }
-.rehearsal-back { position: absolute; left: 20px; top: 14px; width: 48px; height: 48px; display: grid; place-items: center; color: var(--primary); border-radius: 14px; }
-.rehearsal-content { max-width: 880px; margin: auto; padding: 24px 22px 36px; }
+.rehearsal { color: var(--text); }
+.rehearsal-content { max-width: 880px; margin: 0 auto; }
 .rehearsal-banner { display: flex; align-items: center; gap: 12px; background: #e6efff; border-radius: 16px; padding: 14px 16px; color: #214d9e; font-weight: 800; }
 .rehearsal-banner span { display: grid; place-items: center; background: white; border-radius: 11px; width: 40px; height: 40px; }
-.rehearsal-intro { margin: 30px 0 25px; }
+.rehearsal-intro { margin: 28px 0 24px; }
 .rehearsal-intro h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.2; }
 .rehearsal-intro p { color: var(--muted); margin-top: 12px; max-width: 45ch; }
 .rehearsal-form { display: grid; gap: 10px; }
@@ -27,10 +23,7 @@
 .guide-icon { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #2458a8; background: white; }
 .guide-2 .guide-icon { color: #8b5b00; } .guide-3 .guide-icon { color: #286a49; }
 .guide-card h3 { font-size: 16px; }.guide-card p { color: #42536a; font-size: 14px; line-height: 1.45; margin-top: 3px; }
-.guide-number { margin-left: auto; align-self: flex-start; color: #52667d; font-weight: 800; font-size: 12px; }
-.rehearsal-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr); width: min(100%, 480px); background: white; border-top: 1px solid var(--border); padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
-.rehearsal-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; font-size: 12px; font-weight: 700; color: #536482; border-radius: 10px; }
-.rehearsal-nav a[aria-current] { color: var(--primary); background: #edf3ff; }
+.guide-number { margin-left: auto; align-self: flex-start; color: #52667d; font-weight: 800; font-size: 13px; }
 .rehearsal-result { margin-top: 28px; padding: 22px; border: 1px solid #c7d7ed; border-radius: 18px; background: white; scroll-margin-top: 20px; }
 .rehearsal-result:focus { outline: 3px solid var(--primary); outline-offset: 3px; }
 .rehearsal-result h2 { margin: 5px 0 10px; }.rehearsal-result > p { color: var(--muted); }
@@ -39,12 +32,6 @@
 .result-advice { background: #f2f6fc; border-radius: 12px; padding: 15px; margin-top: 10px; }.result-advice h3 { font-size: 15px; }.result-advice p { margin-top: 6px; font-size: 14px; }
 
 @media (min-width: 1024px) {
-  .app-frame.is-salinha { display: block; }
-  .is-salinha main { max-width: none; margin: 0; }
-  .rehearsal { padding-bottom: 100px; }
-  .rehearsal-top { height: 76px; }
-  .rehearsal-content { padding: 36px 32px 50px; }
-  .rehearsal-nav { width: min(100%, 560px); border: 1px solid var(--border); border-radius: 16px 16px 0 0; }
   .guide-list { grid-template-columns: repeat(3, 1fr); gap: 18px; }
   .guide-list::before { left: 40px; right: 40px; top: 35px; bottom: auto; border-left: 0; border-top: 2px dashed #99b8d9; }
   .guide-card { align-items: flex-start; flex-direction: column; min-height: 180px; }

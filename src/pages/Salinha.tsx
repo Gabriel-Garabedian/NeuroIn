@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, CalendarCheck, Compass, House, Leaf, MessageCircle, UserRound } from 'lucide-react';
-import { Brand } from '../components/Brand';
+import { ArrowRight, CalendarCheck, Compass, Leaf, MessageCircle } from 'lucide-react';
 import AnimatedContent from '../components/AnimatedContent';
 import { useApp } from '../context/AppContext';
 import { scenarios } from './demoAreasData';
@@ -29,10 +27,6 @@ export default function Salinha() {
   const resultRef = useRef<HTMLElement>(null);
   useEffect(() => { if (result) resultRef.current?.focus(); }, [result]);
   return <div className="rehearsal">
-    <header className="rehearsal-top">
-      <Link to="/" className="rehearsal-back" aria-label="Voltar ao início"><ArrowLeft aria-hidden="true" size={23} /></Link>
-      <Link to="/" aria-label="NeuroIn — Início"><Brand /></Link>
-    </header>
     <div className="rehearsal-content">
       <div className="rehearsal-banner"><span><Compass size={22} aria-hidden="true" /></span><p>Salinha de Realidade Assistida</p></div>
       <div className="rehearsal-intro"><h1 tabIndex={-1}>Vamos ensaiar juntos?</h1><p>Escolha uma situação para se preparar no seu ritmo.</p></div>
@@ -63,12 +57,5 @@ export default function Salinha() {
       <aside className="rehearsal-encouragement"><Leaf size={26} aria-hidden="true" /><p>Você pode fazer uma etapa de cada vez.</p></aside>
       <section className="rehearsal-guide" aria-labelledby="guide-title"><h2 id="guide-title">Um passo de cada vez</h2><AnimatedContent disabled={preferences.reducedMotion || systemReduced} trigger="mount" distance={12} duration={0.45} animateOpacity={false}><div className="guide-list">{guides.map(({ icon: Icon, title, description }, index) => <article className={`guide-card guide-${index + 1}`} key={title}><span className="guide-icon"><Icon size={27} strokeWidth={1.7} aria-hidden="true" /></span><div><h3>{title}</h3><p>{description}</p></div><span className="guide-number" aria-hidden="true">0{index + 1}</span></article>)}</div></AnimatedContent></section>
     </div>
-    <nav className="rehearsal-nav" aria-label="Navegação da salinha">
-      <Link to="/"><House aria-hidden="true" size={21} /><span>Início</span></Link>
-      <Link to="/salinha" aria-current="page"><Compass aria-hidden="true" size={21} /><span>Ensaiar</span></Link>
-      <Link to="/comunicacao"><BookOpen aria-hidden="true" size={21} /><span>Recursos</span></Link>
-      <Link to="/sobre-mim"><UserRound aria-hidden="true" size={21} /><span>Meu perfil</span></Link>
-    </nav>
-
   </div>;
 }

@@ -52,7 +52,6 @@ function Layout() {
   const main = useRef<HTMLElement>(null);
   const lastPath = useRef(location.pathname);
   const calm = location.pathname === "/calmo";
-  const salinha = location.pathname === "/salinha";
   useEffect(() => {
     if (lastPath.current === location.pathname) return;
     lastPath.current = location.pathname;
@@ -62,12 +61,12 @@ function Layout() {
   }, [location.pathname]);
   return (
     <div
-      className={`app-frame ${preferences.vividColors && !calm ? "vivid-colors" : ""} ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""} ${salinha ? "is-salinha" : ""}`}
+      className={`app-frame ${preferences.vividColors && !calm ? "vivid-colors" : ""} ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""}`}
     >
       <a className="skip-link" href="#main">
         Ir para o conteúdo
       </a>
-      {!salinha && <header className="app-header">
+      {<header className="app-header">
         <Link to="/" className="brand-link" aria-label="NeuroIn — Início">
           <Brand />
         </Link>
@@ -95,7 +94,7 @@ function Layout() {
         )}
         <Outlet />
       </main>
-      {!calm && !salinha && <nav className="bottom-navigation" aria-label="Navegação principal">
+      {!calm && <nav className="bottom-navigation" aria-label="Navegação principal">
         {nav.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
