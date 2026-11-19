@@ -31,6 +31,7 @@ import AboutMe from "./pages/AboutMe";
 import SupportNetwork from "./pages/SupportNetwork";
 import SupportView from "./pages/SupportView";
 import Settings from "./pages/Settings";
+import { Mural, Forum, Vitrine, Salinha } from "./pages/DemoAreas";
 import { CommunicationProvider } from "./notifications/CommunicationProvider";
 const nav = [
   { to: "/", label: "Início", icon: House },
@@ -51,6 +52,7 @@ function Layout() {
   const main = useRef<HTMLElement>(null);
   const lastPath = useRef(location.pathname);
   const calm = location.pathname === "/calmo";
+  const salinha = location.pathname === "/salinha";
   useEffect(() => {
     if (lastPath.current === location.pathname) return;
     lastPath.current = location.pathname;
@@ -60,12 +62,12 @@ function Layout() {
   }, [location.pathname]);
   return (
     <div
-      className={`app-frame ${preferences.vividColors && !calm ? "vivid-colors" : ""} ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""}`}
+      className={`app-frame ${preferences.vividColors && !calm ? "vivid-colors" : ""} ${preferences.largeText ? "large-text" : ""} ${preferences.highContrast ? "high-contrast" : ""} ${preferences.reducedMotion || calm ? "reduce-motion" : ""} ${calm ? "is-calm" : ""} ${salinha ? "is-salinha" : ""}`}
     >
       <a className="skip-link" href="#main">
         Ir para o conteúdo
       </a>
-      <header className="app-header">
+      {!salinha && <header className="app-header">
         <Link to="/" className="brand-link" aria-label="NeuroIn — Início">
           <Brand />
         </Link>
@@ -84,7 +86,7 @@ function Layout() {
             A<span />
           </Link>
         </div>
-      </header>
+      </header>}
       <main ref={main} id="main" tabIndex={-1}>
         {location.state?.resetMessage && (
           <p className="inline-feedback" role="status">
@@ -93,7 +95,7 @@ function Layout() {
         )}
         <Outlet />
       </main>
-      {!calm && <nav className="bottom-navigation" aria-label="Navegação principal">
+      {!calm && !salinha && <nav className="bottom-navigation" aria-label="Navegação principal">
         {nav.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -173,6 +175,10 @@ export default function App() {
               <Route path="sobre-mim" element={<AboutMe />} />
               <Route path="equipe" element={<SupportNetwork />} />
               <Route path="rede" element={<SupportView />} />
+              <Route path="mural" element={<Mural />} />
+              <Route path="forum" element={<Forum />} />
+              <Route path="vitrine" element={<Vitrine />} />
+              <Route path="salinha" element={<Salinha />} />
               <Route path="ajustes" element={<Settings />} />
               <Route
                 path="*"

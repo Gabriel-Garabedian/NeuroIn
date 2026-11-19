@@ -92,8 +92,8 @@
   .home-calm { grid-column: 2; grid-row: 5; align-self: start; margin: 0; padding: 26px; border-radius: 20px 20px 20px 6px; }
   .home-calm .calm-cta { margin-left: 0; font-size: 15px; }
   .home-routine { grid-column: 1; grid-row: 5; }
-  .home-footer { grid-column: 1 / -1; grid-row: 6; margin-top: 36px; }
-  .academic-note { grid-column: 1 / -1; grid-row: 7; }
+  .home-footer { grid-column: 1 / -1; grid-row: 7; margin-top: 36px; }
+  .academic-note { grid-column: 1 / -1; grid-row: 8; }
   .next-activity { padding: 20px; border-radius: 0 16px 16px 0; background: var(--surface); }
   .next-activity strong { font-size: 20px; }
 

@@ -116,6 +116,16 @@ export default function Home() {
           </span>
         </div>
       </section>
+      <section className="demo-links" aria-labelledby="discover-title">
+        <h2 id="discover-title">Explore outros espaços</h2>
+        <p className="muted">Conteúdos fictícios para demonstração.</p>
+        <div className="demo-links-grid">
+          <Link to="/mural">Mural de conquistas →</Link>
+          <Link to="/forum">Fórum de apoio mútuo →</Link>
+          <Link to="/vitrine">Vitrine de padrinhos e profissionais →</Link>
+          <Link to="/salinha">Salinha de realidade assistida →</Link>
+        </div>
+      </section>
       <div className="home-footer">
         <HeartHandshake aria-hidden="true" size={18} />
         <span>Você tem uma rede com quem contar.</span>

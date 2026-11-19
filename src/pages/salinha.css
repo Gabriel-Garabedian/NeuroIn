@@ -1,0 +1,61 @@
+.is-salinha main { padding: 0; }
+.rehearsal { background: #f7faff; min-height: 100dvh; color: var(--text); padding-bottom: 94px; }
+.rehearsal-top { height: 76px; display: flex; align-items: center; justify-content: center; background: var(--surface); border-bottom: 1px solid var(--border); position: relative; }
+.rehearsal-top .brand { font-size: 25px; }
+.rehearsal-back { position: absolute; left: 20px; top: 14px; width: 48px; height: 48px; display: grid; place-items: center; color: var(--primary); border-radius: 14px; }
+.rehearsal-content { max-width: 880px; margin: auto; padding: 24px 22px 36px; }
+.rehearsal-banner { display: flex; align-items: center; gap: 12px; background: #e6efff; border-radius: 16px; padding: 14px 16px; color: #214d9e; font-weight: 800; }
+.rehearsal-banner span { display: grid; place-items: center; background: white; border-radius: 11px; width: 40px; height: 40px; }
+.rehearsal-intro { margin: 30px 0 25px; }
+.rehearsal-intro h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.2; }
+.rehearsal-intro p { color: var(--muted); margin-top: 12px; max-width: 45ch; }
+.rehearsal-form { display: grid; gap: 10px; }
+.rehearsal-form label { font-weight: 800; margin-top: 8px; }
+.rehearsal-form input, .rehearsal-form textarea { width: 100%; border: 1px solid #c7d7ed; background: white; color: var(--text); border-radius: 14px; padding: 16px; min-height: 58px; font: inherit; }
+.rehearsal-form textarea { min-height: 106px; resize: vertical; }
+.rehearsal-form input::placeholder, .rehearsal-form textarea::placeholder { color: #687890; opacity: 1; }
+.rehearsal-form input:focus-visible, .rehearsal-form textarea:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.rehearsal-note { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.rehearsal-submit { min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--primary); color: white; border-radius: 14px; font-weight: 800; margin-top: 5px; }
+.rehearsal-submit:hover { background: var(--primary-hover); }
+.rehearsal-encouragement { margin: 24px 0 36px; padding: 18px; display: flex; align-items: center; gap: 14px; background: #e5f3e9; border-radius: 16px; color: #235b42; font-weight: 800; }
+.rehearsal-guide h2 { font-size: 19px; margin-bottom: 17px; }
+.guide-list { display: grid; gap: 15px; position: relative; }
+.guide-list::before { content: ''; position: absolute; left: 31px; top: 35px; bottom: 35px; border-left: 2px dashed #99b8d9; }
+.guide-card { position: relative; display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 16px; background: #e7f1ff; }
+.guide-2 { background: #fff4d2; } .guide-3 { background: #e6f3e9; }
+.guide-icon { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #2458a8; background: white; }
+.guide-2 .guide-icon { color: #8b5b00; } .guide-3 .guide-icon { color: #286a49; }
+.guide-card h3 { font-size: 16px; }.guide-card p { color: #42536a; font-size: 14px; line-height: 1.45; margin-top: 3px; }
+.guide-number { margin-left: auto; align-self: flex-start; color: #52667d; font-weight: 800; font-size: 12px; }
+.rehearsal-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr); width: min(100%, 480px); background: white; border-top: 1px solid var(--border); padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
+.rehearsal-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; font-size: 12px; font-weight: 700; color: #536482; border-radius: 10px; }
+.rehearsal-nav a[aria-current] { color: var(--primary); background: #edf3ff; }
+.rehearsal-result { margin-top: 28px; padding: 22px; border: 1px solid #c7d7ed; border-radius: 18px; background: white; scroll-margin-top: 20px; }
+.rehearsal-result:focus { outline: 3px solid var(--primary); outline-offset: 3px; }
+.rehearsal-result h2 { margin: 5px 0 10px; }.rehearsal-result > p { color: var(--muted); }
+.rehearsal-result .result-label { color: var(--primary); font-weight: 800; font-size: 13px; }
+.rehearsal-result ol { padding-left: 24px; margin: 20px 0; }.rehearsal-result li { padding: 5px 0; line-height: 1.55; }
+.result-advice { background: #f2f6fc; border-radius: 12px; padding: 15px; margin-top: 10px; }.result-advice h3 { font-size: 15px; }.result-advice p { margin-top: 6px; font-size: 14px; }
+
+@media (min-width: 1024px) {
+  .app-frame.is-salinha { display: block; }
+  .is-salinha main { max-width: none; margin: 0; }
+  .rehearsal { padding-bottom: 100px; }
+  .rehearsal-top { height: 76px; }
+  .rehearsal-content { padding: 36px 32px 50px; }
+  .rehearsal-nav { width: min(100%, 560px); border: 1px solid var(--border); border-radius: 16px 16px 0 0; }
+  .guide-list { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .guide-list::before { left: 40px; right: 40px; top: 35px; bottom: auto; border-left: 0; border-top: 2px dashed #99b8d9; }
+  .guide-card { align-items: flex-start; flex-direction: column; min-height: 180px; }
+  .guide-number { position: absolute; right: 15px; top: 15px; }
+}
+.rehearsal-error:not(:empty) { color: #a12b35; font-weight: 700; font-size: 14px; }
+.situation-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.situation-field { margin: 8px 0 0; min-width: 0; }
+.situation-field legend { font-family: inherit; font-size: 16px; font-weight: 800; margin-bottom: 10px; }
+.situation-options label { position: relative; margin: 0; cursor: pointer; }
+.situation-options input[type="radio"] { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
+.situation-options label span { display: flex; align-items: center; min-height: 44px; padding: 9px 14px; border: 1px solid #c7d7ed; border-radius: 12px; color: var(--primary); background: var(--surface); font-size: 14px; font-weight: 700; }
+.situation-options input:checked + span { color: white; background: var(--primary); border-color: var(--primary); }
+.situation-options input:focus-visible + span { outline: 3px solid var(--primary); outline-offset: 3px; }
