@@ -29,7 +29,7 @@ Sugestão de abertura, a adaptar à autoria e ao trabalho efetivamente realizado
 > demonstração, acompanhamos Ana, uma personagem fictícia, que pode mostrar uma
 > necessidade, indicar um desconforto e compartilhar suas preferências. A proposta
 > é explorar como a interface pode apoiar essa comunicação. Não há atendimento,
-> diagnóstico nem envio de mensagens neste protótipo.
+> diagnóstico. As novas áreas usam exemplos fictícios; aparelhos vinculados podem enviar pedidos à rede de apoio.
 
 Explique a relação com Enfermagem a partir do recorte adotado pelo grupo: escuta,
 respeito às preferências e comunicação com a rede de apoio. Fundamente a
@@ -45,7 +45,7 @@ clínicos comprovados a esta demonstração.
 | 1:30–2:15 | Dor → Barriga → intensidade 5 → Confirmar | A interface comunica o que foi selecionado; não interpreta a dor. |
 | 2:15–3:00 | Início → Barulho → Quero silêncio → Modo Calmo → sair | Demonstrar escolha pessoal e interface com menos opções. |
 | 3:00–3:45 | Rotina → Almoço → marcar uma etapa → concluir | Mostrar organização e progresso local da demonstração. |
-| 3:45–4:45 | Sobre Mim → Equipe → Ajustes → Rede de apoio | Preferências e pessoas são fictícias; pedidos não são enviados. |
+| 3:45–4:45 | Sobre Mim → Equipe → Ajustes → Rede de apoio | Preferências e pessoas são fictícias; aparelhos vinculados permitem pedidos reais em uma seção separada. |
 | 4:45–5:15 | Voltar à visão pessoal → Ajustes → Texto maior ou Cores mais vivas | Preferências podem variar; não existe uma apresentação universal. |
 | 5:15–6:00 | Explicar processo, verificações, limites e próximos passos | Separar o que foi implementado do que ainda seria avaliado. |
 
@@ -61,7 +61,7 @@ demais fluxos em capturas preparadas no próprio projeto.
 | Há cartões e frases para comunicar necessidades. | O conjunto é pré-definido e usa uma personagem fictícia. |
 | Há voz opcional. | O áudio depende do navegador e do dispositivo; ensaie no equipamento da apresentação. |
 | Há rotina e preferências persistidas. | Os dados ficam neste navegador; não há conta ou sincronização. |
-| Há uma visão da rede de apoio. | Não há autenticação, prontuário nem comunicação remota. |
+| Há uma visão da rede de apoio. | Não há contas nem prontuário. Aparelhos vinculados podem trocar pedidos e notificações. |
 | Há registros de comunicação de exemplo. | São estáticos e não registram as interações da sessão. |
 | Há recursos de acessibilidade e testes técnicos. | Isso não equivale a comprovação de adequação a todas as pessoas ou validação com usuários. |
 
@@ -86,9 +86,8 @@ Use as verificações documentadas na revisão mais recente de
 [CONTEXTO.md](CONTEXTO.md). Explique o que foi observado e os limites dos testes.
 Não apresente resultados históricos como se fossem da versão atual.
 
-**Por que não há envio de mensagens ou cadastro?**
-O escopo é demonstrar a experiência local com dados fictícios. Esses recursos
-exigiriam uma implementação adicional e avaliação própria antes de uso real.
+**Por que não há comunidade compartilhada ou cadastro?**
+As novas áreas usam dados fictícios. Pedidos e notificações entre aparelhos vinculados são recursos separados. Comunidade compartilhada e cadastro exigiriam implementação e avaliação adicionais.
 
 **O que vocês fariam depois?**
 Apresente como proposta futura a avaliação de compreensão e usabilidade com o
@@ -111,3 +110,9 @@ Não relate essas atividades como já concluídas.
 Para iniciar a aplicação, siga [Executando localmente](../README.md#executando-localmente).
 Mantenha o servidor local em execução durante a apresentação. Instale e prepare
 as dependências com antecedência; não dependa de downloads no momento da banca.
+
+## Novos espaços para demonstrar
+
+Em **Início → Explore outros espaços**, apresente o mural, escolha **Apoiar**, escreva um comentário e explique que ambos são locais e temporários. No fórum, selecione uma categoria e abra o tópico: pergunta e resposta são fictícias. Na vitrine, alterne entre padrinhos/tutores e profissionais e simule um contato; nenhum contato é iniciado. Na salinha, escolha uma das seis situações, escreva um receio se desejar e abra o roteiro preparado para a opção. O texto não é enviado e o receio não personaliza o resultado.
+
+Essas áreas não representam comunidade real, atendimento ou conteúdo gerado por IA. A rede de apoio e as notificações entre aparelhos são recursos separados; demonstre-os conforme o roteiro de vínculo do README e apenas com autorização dos participantes. Não apresente as sugestões da salinha como orientação clínica.

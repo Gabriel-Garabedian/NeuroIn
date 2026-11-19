@@ -349,3 +349,49 @@ Reabrir/atualizar NeuroIn no aparelho da crianca para carregar o novo JS,
 sem limpar dados do navegador (preservar vinculo). Pendente observar avisos
 e som repetidos nos aparelhos reais. O usuario ja confirmou recebimento inicial
 na versao anterior; isso nao comprova recebimento repetido desta publicacao.
+
+## 19/11/2026 — áreas demonstrativas
+
+Foram adicionados mural, fórum, vitrine e salinha acessíveis pela página inicial.
+Dados e respostas são fictícios; reações e receios permanecem apenas na tela;
+contatos são simulados e cenários são previamente preparados, sem IA. Backend,
+vínculos, pedidos e restauração existentes não foram modificados. README e guia
+de apresentação descrevem os limites e o roteiro das novas áreas.
+
+Verificações locais: lint, typecheck e build concluídos; 23 testes de servidor
+passaram. A suíte de navegador teve 43 aprovados e dois tempos esgotados durante
+execução concorrente; os dois passaram ao repetir isoladamente. Os três testes
+específicos das novas áreas passaram, incluindo axe, teclado e larguras 390 e
+1280 px. Transporte externo de push é simulado nos testes; não houve conferência
+em aparelhos físicos nem deploy desta versão.
+
+## 19/11/2026 — ajustes nas áreas demonstrativas
+
+A vitrine mostra o resultado do contato simulado junto ao perfil. A grade da página inicial em desktop foi corrigida. O mural aceita comentários temporários e a reação de apoio tem animação CSS, desativada com movimento reduzido. O fórum apresenta três perguntas por categoria, sem atribuir respostas a pessoas reais; a salinha oferece seis situações com etapas ampliadas. Sem novas dependências ou alterações no backend. Comentários e reações desaparecem ao sair da tela.
+
+Lint, typecheck, build e seis testes específicos passaram; axe e teclado foram verificados em 390 e 1280 px. Capturas locais de desktop foram conferidas visualmente. Não houve teste com leitor de tela real nem deploy.
+A regressão de desktop e notificações passou em 15 testes; o transporte externo de push foi simulado.
+
+## 19/11/2026 — nova apresentação da salinha
+
+A salinha recebeu interface mobile-first própria, campos de texto e navegação de quatro itens. A situação escolhe por palavras um dos seis exemplos existentes ou um roteiro geral; os receios não alteram o conteúdo. O resultado indica que foi preparado previamente e traz etapas, imprevistos e uma sugestão de pausa. Não há IA nem envio dos textos. README e roteiro de apresentação foram atualizados.
+
+Lint, typecheck, build e testes das áreas passaram; axe e navegação foram conferidos em 390 e 1280 px e capturas locais dessas larguras foram inspecionadas. Não houve deploy ou teste com leitor de tela real.
+
+## 19/11/2026 — animação e auditoria de coesão
+
+Animated Content do React Bits foi incorporado com GSAP na sequência de etapas da salinha, com distância e duração moderadas. O movimento é desativado pela preferência do sistema e pela opção do app; licença e origem estão em THIRD_PARTY.md e docs/REACT_BITS_LICENSE.md. A auditoria com agentes identificou e corrigiu busca sensível a maiúsculas, ausência de foco ao reenviar o mesmo roteiro e rejeição silenciosa de campos com apenas espaços na salinha e no mural.
+
+Lint, typecheck e build passaram; 11 testes das áreas passaram, seguidos por seis testes da salinha incluindo movimento reduzido e axe com resultado aberto. Auditoria automática em 320, 390 e 1280 px não identificou violações axe ou rolagem horizontal na salinha. npm audit --omit=dev reportou cinco alertas (dois moderados e três altos) na cadeia existente de @vercel/queue, minimatch e zod; não foi feita atualização forçada. A instalação usou Node 26.13.1, embora o projeto solicite Node 24. Não houve teste com leitor de tela real ou deploy.
+
+## 19/11/2026 — opções e entrada animada do roteiro
+
+A salinha oferece botões para escolher qualquer um dos seis exemplos ou digitar uma situação livre. O resultado usa AnimatedContent com GSAP ao aparecer, repetindo a entrada em novos envios e respeitando movimento reduzido. O conteúdo continua preparado previamente; receios não são enviados nem personalizados.
+
+## 19/11/2026 — escolha fechada na salinha
+
+A situação agora é escolhida entre seis opções com botões de rádio; cada uma aponta diretamente ao roteiro preparado correspondente. Foi removida a entrada livre da situação e o roteiro geral. O campo de receios continua opcional, local e sem personalizar o resultado. Lint, typecheck, build e 10 testes das áreas passaram, incluindo as seis correspondências e movimento reduzido. Não houve deploy.
+
+## 19/11/2026 — preparação dos commits
+
+Antes do push: lint e build passaram; 54 testes de navegador e 23 testes de servidor passaram. O transporte externo de push permanece simulado nos testes; não houve nova verificação em celulares físicos. Cache Graphify e capturas locais foram mantidos fora do versionamento.

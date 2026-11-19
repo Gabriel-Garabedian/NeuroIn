@@ -35,6 +35,16 @@ Conectar comunicação, acolhimento, autonomia e bem-estar. O perfil acadêmico 
 - Texto maior, alto contraste, movimento reduzido e menos opções; restauração da demonstração com confirmação.
 - Navegação por teclado, foco visível, link para pular ao conteúdo e respeito a `prefers-reduced-motion`.
 
+### Novas áreas demonstrativas
+
+Na página inicial, em **Explore outros espaços**, estão quatro áreas com conteúdo fictício preparado previamente:
+
+- **Mural de conquistas:** leia exemplos, escreva um comentário e experimente apoiar ou retirar apoio. Comentários e reações duram somente enquanto a tela estiver aberta.
+- **Fórum de apoio mútuo:** escolha uma categoria e abra um tópico para ler a resposta fictícia. Não há publicação nem comunidade compartilhada.
+- **Vitrine de padrinhos e profissionais:** escolha uma categoria e experimente o botão de contato; nenhum contato real é iniciado. Os perfis e disponibilidades são fictícios.
+- **Salinha de realidade assistida:** escolha uma das seis situações, informe seus receios se desejar e selecione “Criar meu ensaio”. O roteiro preparado para a opção escolhida aparece com uma animação suave, respeitando a preferência de movimento reduzido. Os receios ficam na tela e não personalizam o resultado.
+
+Essas áreas não usam IA, contas ou serviços externos. Restaurar a demonstração continua sem apagar vínculos e pedidos do servidor. A comunicação e a rede de apoio, incluindo notificações entre aparelhos, permanecem disponíveis nos caminhos existentes.
 ## Tecnologias
 
 React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Lucide. CSS com tokens e componentes reutilizáveis. Poppins e Nunito servidas localmente via Fontsource. Node.js 24, Express, SQLite local ou Turso remoto e web-push atendem aos vínculos e notificações. Playwright e axe-core para validação.
